@@ -1,0 +1,3243 @@
+<template>
+    <div id="table">
+        <div class="layui-tab-item layui-show layui-form">
+            <!-- 表格按钮 -->
+            <div>
+                <button class="layui-btn layui-btn-normal" v-if="operate.add" @click="add()" layui-filter>
+                    <i class="glyphicon glyphicon-plus"></i>
+                    {{$t('Table.Operate_Btn_list[0]')}}
+                </button>
+                <button class="layui-btn layui-btn-warm delete" v-if="operate.delete" @click="delet()">
+                    <i class="glyphicon glyphicon-minus "></i>
+                    {{$t('Table.Operate_Btn_list[1]')}}
+                </button>
+                <button class="layui-btn layui-btn-normal deleteButton" v-if="operate.save" @click="updated()">
+                    <i class="glyphicon glyphicon-floppy-disk"></i>
+                    {{$t('Table.Operate_Btn_list[2]')}}
+                </button>
+                <button class="layui-btn layui-btn-normal batch" v-if="operate.management" @click="batch()">
+                    <i class="glyphicon glyphicon-adjust"></i>
+                    {{$t('Table.Operate_Btn_list[3]')}}
+                </button>
+                <button class="layui-btn layui-btn modify" v-if="operate.modify" @click="modity()">
+                    <i class="glyphicon glyphicon-edit"></i>
+                    {{$t('Table.Operate_Btn_list[4]')}}
+                </button>
+                <button class="layui-btn layui-btn email" v-if="operate.emailSet" @click="addBox">
+                    <i class="glyphicon glyphicon-envelope"></i>
+                    {{$t('Table.Operate_Btn_list[5]')}}
+                </button>
+                <button class="layui-btn layui-btn test" v-if="operate.test" @click="test">
+                    <i class="glyphicon glyphicon-briefcase"></i>
+                    {{$t('Table.Operate_Btn_list[6]')}}
+                </button>
+                <button class="layui-btn layui-btn compared" v-if="operate.compared" @click="compared">
+                    <i class="glyphicon glyphicon-adjust"></i>
+                    {{$t('Table.Operate_Btn_list[7]')}}
+                </button>
+                <button class="layui-btn layui-btn log" v-if="operate.log" @click="timedTaskLogBox">
+                    <i class="glyphicon glyphicon-list-alt"></i>
+                    {{$t('Table.Operate_Btn_list[8]')}}
+                </button>
+                <button class="layui-btn layui-btn application" v-if="operate.application">
+                    <i class="glyphicon glyphicon-floppy-disk"></i>
+                    {{$t('Table.Operate_Btn_list[9]')}}
+                </button>
+                <button class="layui-btn layui-btn batchEdit" v-if="operate.batchEdit">
+                    <i class="glyphicon glyphicon-adjust"></i>
+                    {{$t('Table.Operate_Btn_list[10]')}}
+                </button>
+            </div>
+            <!-- 展示数据表格 -->
+            <table class="layui-hide setTable" :id="sort" :lay-filter="sort" lay-data="{id: 'dataTable'}"></table>
+        </div>
+        <div :id="laypageId" class="layui_page"></div>
+        <!-- 设备组 新增 穿梭框 -->
+        <div v-parent="'body'" v-if="sort=='devices'" class="addDeviceBox" hidden>
+            <div class="A">
+                <ul>
+                    <li v-for='sorts01 in sorts' :key="sorts01.Name">
+                        <div v-on:click="spread($event)"> <span></span> {{sorts01.Name}}</div>
+                        <ul>
+                            <li v-for='sorts02 in sorts01.sorts' :key="sorts02.Name">
+                                <div v-on:click="spread($event)"><span></span> {{sorts02.Name}}</div>
+                                <ul>
+                                    <li v-for='sorts03 in sorts02.sorts' :key="sorts03.Name">
+                                        <div @click="spread($event)"> <span></span>{{sorts03.Name}}</div>
+                                        <ul>
+                                            <li v-for='sorts04 in sorts03.sorts' :key="sorts04.Name">
+                                                <label><input type="checkbox" :sortId="sorts04[0]">{{sorts04[1]}}</label>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="B">
+                <button class="BA" @click="aDevice">{{$t('Table.Box.Add.device.btn[0]')}}>></button>
+                <button class="BB" @click="rDevice">&lt;&lt;{{$t('Table.Box.Add.device.btn[1]')}}</button>
+            </div>
+            <div class="C">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><label><input type="checkbox" onclick="selectAll(event)"></label></th>
+                            <th>{{$t('Table.Box.Add.device.table_th[0]')}}</th>
+                            <th>{{$t('Table.Box.Add.device.table_th[1]')}}</th>
+                            <th>{{$t('Table.Box.Add.device.table_th[2]')}}</th>
+                            <th style="width:100px;">{{$t('Table.Box.Add.device.table_th[3]')}}</th>
+                            <th>{{$t('Table.Box.Add.device.table_th[4]')}}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div v-parent="'body'" v-if="sort==='devices'" id="batchBox" hidden>
+            <div class="layui-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[0]')}}</label>
+                    <div class="layui-input-block">
+                        <input v-for="it in batchTemp.nec" :key="it.key" type="checkbox" :name="it.key" :value="it.value" lay-skin="primary" :title="it.value" >
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[1]')}}</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-disabled" disabled style="backgroundColor: #273fa5; color: #ccc">{{batchTemp.temp[0]}}</button>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[2]')}}</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn" v-for="(it, index) in batchTemp.temp" :key="it" v-show="(index==0)?false:true" @click="changeBtnClick(index)">{{it}}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-parent="'body'" v-else-if="sort==='monitoring'" id="batchBox2" hidden>
+            <div class="layui-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.monitoring.label[0]')}}</label>
+                    <div class="layui-input-block">
+                        <input v-for="it in batchTemp.nec2" :key="it.key" type="checkbox" :name="it.key" :value="it.value" lay-skin="primary" :title="it.value" >
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.monitoring.label[1]')}}</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-disabled" disabled style="backgroundColor: #273fa5; color: #ccc">{{batchTemp.temp[0]}}</button>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.monitoring.label[2]')}}</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn" v-for="(it, index) in batchTemp.temp" :key="it" v-show="(index==0)?false:true" @click="changeBtnClick(index)">{{it}}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-parent="'body'" v-if="sort=='user'" hidden id="userEditBox">
+            <div class="layui-form" lay-filter="modityUserForm" id="modityUserForm">
+                <form>
+                    <div class="layui-form-item" style="width: 90%">
+                        <label class="layui-form-label">{{$t('Table.Box.Add.user.label[0]')}}</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="userName" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[0]')" :value="userEditBox.userName" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="width: 90%">
+                        <label class="layui-form-label">{{$t('Table.Box.Add.user.label[1]')}}</label>
+                        <div class="layui-input-block">
+                            <select name="Type" lay-filter="selectUserRole" id="selectUserRole"> 
+                                <option value="0">{{$t('Table.Box.Add.user.option[2]')}}</option>
+                                <option value="1">{{$t('Table.Box.Add.user.option[3]')}}</option>
+                                <option value="2">{{$t('Table.Box.Add.user.option[4]')}}</option>
+                            </select>     
+                        </div>
+                    </div>
+                    <div v-if="userRole" class="userRole">
+                        <div class="layui-form-item hostAll" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[2]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="checkbox" name="host[All]" value="0" :title="$t('Table.Box.Add.user.option[0]')" lay-skin="primary" lay-filter="selectAll">
+                                <ul>
+                                    <li v-for="it in hostgroup" :key="it.Id">
+                                        <input type="checkbox" :value="it.Id" :title="it.Name" name="host" lay-skin="primary">
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="layui-form-item contactAll" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[3]')}}</label>
+                            <div class="layui-input-block" >
+                                <input type="checkbox" name="contact[All]" value="0" :title="$t('Table.Box.Add.user.option[1]')" lay-skin="primary" lay-filter="selectAll">
+                                <ul>
+                                    <li v-for="it in contactsList" :key="it.Id">
+                                        <input type="checkbox" :value="it.Id" :title="it.Name" name="contact" lay-skin="primary">
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="setPwd">
+                        <div class="layui-form-item" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[4]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="pwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[1]')" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[5]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="repwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[2]')" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="changePwd">
+                        <div class="layui-form-item" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[6]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="checkbox" name="modityPwd1" lay-skin="primary" lay-filter="modityPwd">
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="reSetPwd">
+                        <div class="layui-form-item" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[7]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="oldpwd" lay-verify="title" autocomplete="off" placeholder="密码长度为3-20位" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[8]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="newpwd" lay-verify="title" autocomplete="off" placeholder="请保持两次密码输入一致" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="width: 90%">
+                            <label class="layui-form-label">{{$t('Table.Box.Add.user.label[9]')}}</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="renewpwd" lay-verify="title" autocomplete="off" placeholder="请保持两次密码输入一致" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 人员管理更多 -->
+        <div v-parent="'body'" v-if="sort=='contacts'" hidden id="contactsMore">
+            <div class="layui-form">
+                <form>
+                    <div class="layui-tab">
+                        <ul class="layui-tab-title">
+                            <li class="layui-this">{{$t('Table.Box.Cell.contacts.more.tab[0]')}}</li>
+                            <li>{{$t('Table.Box.Cell.contacts.more.tab[1]')}}</li>
+                        </ul>
+                        <div class="layui-tab-content">
+                            <div class="layui-tab-item layui-show">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">{{$t('Table.Box.Cell.contacts.more.label[0]')}}</label>
+                                    <div class="layui-input-block">
+                                        <input type="checkbox" name="HostNotificationsEnabled" value="true" lay-skin="primary" :checked="currentContactMore.HostNotificationsEnabled">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">{{$t('Table.Box.Cell.contacts.more.label[1]')}}</label>
+                                    <div class="layui-input-block">
+                                        <select name="HostNotificationPeriod" lay-verify="">
+                                            <option :value="it.Id" v-for="it in timeSlot" :key="it.Id" :selected='currentContactMore.HostNotificationPeriod==it.Id?true:false'>{{it.Name}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <div style="border:1px solid #ccc; border-radius: 5px; display: flex">
+
+                                            <div>
+                                                <input type="checkbox" :title="$t('Table.Box.Cell.contacts.more.label[2]')" lay-skin="primary" lay-filter="selectAll">
+                                                <ul style="margin-left: 20px;">
+                                                    <li>
+                                                        <input type="checkbox" name="HostNotificationOnDown" :title="$t('Table.Box.Cell.contacts.more.option[0]')" value="true" lay-skin="primary" :checked="currentContactMore.HostNotificationOnDown"> 
+                                                    </li>
+                                                    <li>
+                                                        <input type="checkbox" name="HostNotificationOnUnreachable" :title="$t('Table.Box.Cell.contacts.more.option[1]')" value="true" lay-skin="primary" :checked="currentContactMore.HostNotificationOnUnreachable"> 
+                                                    </li>
+                                                    <li>
+                                                        <input type="checkbox" name="HostNotificationOnRecovery" :title="$t('Table.Box.Cell.contacts.more.option[2]')" value="true" lay-skin="primary" :checked="currentContactMore.HostNotificationOnRecovery"> 
+                                                    </li>
+                                                    <li>
+                                                        <input type="checkbox" name="HostNotificationOnFlapping" :title="$t('Table.Box.Cell.contacts.more.option[3]')" value="true" lay-skin="primary" :checked="currentContactMore.HostNotificationOnFlapping"> 
+                                                    </li>
+                                                    <li>
+                                                        <input type="checkbox" name="HostNotificationOnScheduledDowntime" :title="$t('Table.Box.Cell.contacts.more.option[4]')" value="true" lay-skin="primary" :checked="currentContactMore.HostNotificationOnScheduledDowntime"> 
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            <div style="width: 60%">
+                                                <input type="checkbox" :title="$t('Table.Box.Cell.contacts.more.label[3]')" lay-skin="primary" lay-filter="selectAll">
+                                                <ul style="margin-left: 20px;" v-html="code0">
+                                                    {{code0}}
+                                                </ul>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                            </div>
+
+                            <div class="layui-tab-item">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">{{$t('Table.Box.Cell.contacts.more.label[0]')}}</label>
+                                    <div class="layui-input-block">
+                                        <input type="checkbox" name="ServiceNotificationsEnabled" value="true" lay-skin="primary" :checked="currentContactMore.ServiceNotificationsEnabled">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">{{$t('Table.Box.Cell.contacts.more.label[1]')}}</label>
+                                    <div class="layui-input-block">
+                                        <select name="ServiceNotificationPeriod">
+                                            <option :value="it.Id" v-for="it in timeSlot" :key="it.Id" :selected='currentContactMore.HostNotificationPeriod==it.Id?true:false'>{{it.Name}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <div style="border:1px solid #ccc; border-radius: 5px; display: flex">
+
+                                            <div>
+                                                <input type="checkbox"  :title="$t('Table.Box.Cell.contacts.more.label[2]')" lay-skin="primary" lay-filter="selectAll">
+                                                <ul style="margin-left: 20px;">
+                                                    <li>
+                                                    <input type="checkbox" name="ServiceNotificationOnWarning" :title="$t('Table.Box.Cell.contacts.more.option[5]')" value="true" lay-skin="primary" :checked="currentContactMore.ServiceNotificationOnWarning"> 
+                                                    </li>
+                                                    <li>
+                                                    <input type="checkbox" name="ServiceNotificationOnCritical" :title="$t('Table.Box.Cell.contacts.more.option[6]')" value="true" lay-skin="primary" :checked="currentContactMore.ServiceNotificationOnCritical"> 
+                                                    </li>
+                                                    <li>
+                                                    <input type="checkbox" name="ServiceNotificationOnUnknown" :title="$t('Table.Box.Cell.contacts.more.option[7]')" value="true" lay-skin="primary" :checked="currentContactMore.ServiceNotificationOnUnknown"> 
+                                                    </li>
+                                                    <li>
+                                                    <input type="checkbox" name="ServiceNotificationOnRecovery" :title="$t('Table.Box.Cell.contacts.more.option[8]')" value="true"  lay-skin="primary" :checked="currentContactMore.ServiceNotificationOnRecovery"> 
+                                                    </li>
+                                                    <li>
+                                                    <input type="checkbox" name="ServiceNotificationOnFlapping" :title="$t('Table.Box.Cell.contacts.more.option[9]')" value="true" lay-skin="primary" :checked="currentContactMore.ServiceNotificationOnFlapping"> 
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            <div  style="width: 60%">
+                                                <input type="checkbox" :title="$t('Table.Box.Cell.contacts.more.label[3]')" lay-skin="primary" lay-filter="selectAll">
+                                                <ul style="margin-left: 20px;" v-html="code1">
+                                                    {{code1}}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button hidden lay-submit lay-filter="contactsMore_submit">提交</button>
+                </form>
+            </div>
+        </div>
+        <div v-parent="'body'" v-if="sort=='contacts'"  hidden id="setEmail">
+            <form class="layui-form" lay-filter="contactEmailForm">
+                <div class="layui-form-item" style="width: 95%">
+                    <label class="layui-form-label">{{$t('Table.Box.Email.contacts.label[0]')}}:</label>
+                    <div class="layui-input-block" >
+                        <input type="text" name="User2" required  lay-verify="email" :placeholder="$t('Table.Box.Email.contacts.tips[0]')" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item" style="width: 95%">
+                    <label class="layui-form-label">{{$t('Table.Box.Email.contacts.label[1]')}}:</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="User3" required  lay-verify="required" :placeholder="$t('Table.Box.Email.contacts.tips[1]')" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item" style="width: 95%">
+                    <label class="layui-form-label">{{$t('Table.Box.Email.contacts.label[2]')}}:</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="User4" required  lay-verify="required" :placeholder="$t('Table.Box.Email.contacts.tips[2]')" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <P style="margin-left: 20px; color: red">{{$t('Table.Box.Email.contacts.tips[3]')}}</P>
+            </form>
+        </div>
+        <div v-parent="'body'" v-if="sort=='period'" hidden id="setPeriod">
+            <div class="layui-form">
+                <form>
+                    <div class="setPeriod_content">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div v-parent="'body'" v-if="sort=='leftMenu'" hidden id="leftMenuBox">
+            <div class="layui-form" lay-filter='leftMenuBox'>
+                <form>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">{{$t('mMore.leftMenu.Prompt.label[0]')}}</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="Name" :placeholder="$t('mMore.leftMenu.Prompt.placeholder[0]')" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">{{$t('mMore.leftMenu.Prompt.label[1]')}}</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="Link" :placeholder="$t('mMore.leftMenu.Prompt.placeholder[1]')" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">{{$t('mMore.leftMenu.Prompt.label[2]')}}</label>
+                        <div class="layui-input-block">
+                            <select name="Target">
+                                <option value="main">{{$t('mMore.leftMenu.Prompt.select_opt[0]')}}</option>
+                                <option value="_blank">{{$t('mMore.leftMenu.Prompt.select_opt[1]')}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">{{$t('mMore.leftMenu.Prompt.label[3]')}}</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="Subgroup" :placeholder="$t('mMore.leftMenu.Prompt.placeholder[2]')" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">{{$t('mMore.leftMenu.Prompt.label[4]')}}</label>
+                        <div class="layui-input-block">
+                            <select name="Hostgroup">
+                                <option v-for="item in hostgroup" :key='item.Id' :value="item.Id">{{item.Name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 定时任务 执行周期弹窗 -->
+        <div v-parent="'body'" v-if="sort=='timedTask'" hidden id="timedTaskIds">
+            <div class="layui-form" lay-filter="timedTaskIds">
+                <div class="week">
+                    <form>
+                        <div class="layui-form-item" style="margin: 0">
+                            <div class="layui-input-block" style="display: flex; justify-content: space-between">
+                                <input type="radio" name="Repeat" value="true" :title="$t('Table.Box.Cell.timedTask.cycle.select[0]')" lay-filter="timedTask-Ids">
+                                <input type="radio" name="Repeat" value="false" :title="$t('Table.Box.Cell.timedTask.cycle.select[1]')" lay-filter="timedTask-Ids">
+                            </div>
+                        </div>
+                    
+                        <div style="display: flex; width: 100%; justify-content: space-between">
+                            <div class="layui-form-item timedTask-week" style="margin: 0">
+                                <div class="layui-input-block" style="width:100px;display: flex; flex-direction: column; justify-content: flex-start">
+                                    <input type="checkbox" name="Monday" :title="$t('Table.Box.Cell.timedTask.cycle.option[0]')" lay-skin="primary" value="true">
+                                    <input type="checkbox" name="Tuesday" :title="$t('Table.Box.Cell.timedTask.cycle.option[1]')" lay-skin="primary" value="true"> 
+                                    <input type="checkbox" name="Wednesday" :title="$t('Table.Box.Cell.timedTask.cycle.option[2]')" lay-skin="primary" value="true"> 
+                                    <input type="checkbox" name="Thursday" :title="$t('Table.Box.Cell.timedTask.cycle.option[3]')" lay-skin="primary" value="true"> 
+                                    <input type="checkbox" name="Friday" :title="$t('Table.Box.Cell.timedTask.cycle.option[4]')" lay-skin="primary" value="true"> 
+                                    <input type="checkbox" name="Saturday" :title="$t('Table.Box.Cell.timedTask.cycle.option[5]')" lay-skin="primary" value="true"> 
+                                    <input type="checkbox" name="Sunday" :title="$t('Table.Box.Cell.timedTask.cycle.option[6]')" lay-skin="primary" value="true"> 
+                                </div>
+                            </div>
+                            <div class="layui-form-item timedTask-once">
+                                <div class="layui-input-block">
+                                    <input type="text" name="ExecuteDate" class="layui-input" id="timedTaskLaydata">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div v-parent="'body'" v-if="sort=='timedTask'" hidden id="timedTaskLogBox">
+            <table id="timedTaskLog" lay-filter="timeTaskLog"></table>
+        </div>
+        <div v-parent="'body'" v-if="sort=='linkage'" hidden id="linkageBox">
+            <form class="layui-form" lay-filter='linkageBox'>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="Name" placeholder="请输入联动名称" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">机房组</label>
+                    <div class="layui-input-block">
+                        <select name="hostgroup" lay-filter="linkageAdd">
+                            <option value="">请选择机房组</option>
+                            <option v-for="item in hostgroup" :key="item.Id" :value="item.Id">{{item.Name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">设备</label>
+                    <div class="layui-input-block">
+                        <select name="HostId" lay-filter="linkageAdd">
+                            <option value="">请选择</option>
+                            <option v-for="it in timedTaskAddHost" :key="it.Id" :value="it.Id">{{it.Name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">监控项</label>
+                    <div class="layui-input-block">
+                        <select name="ServiceId" lay-filter="linkageAdd">
+                            <option value=""></option>
+                            <option v-for="it in timedTaskAddServices" :key='it.Id' :value="it.Id">{{it.Description}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">工作值</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="WorkValue" lay-verify="number" placeholder="请输入工作值，格式为数字整数" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">阈值</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="LimitValue" lay-verify="number" placeholder="请输入阈值，格式为数字整数" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">越限命令</label>
+                    <div class="layui-input-block">
+                        <i class="glyphicon glyphicon-edit" aria-hidden="true" style='cursor:pointer' @click="selectOrder(1)"></i>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">恢复命令</label>
+                    <div class="layui-input-block">
+                        <i class="glyphicon glyphicon-edit" aria-hidden="true" style='cursor:pointer' @click="selectOrder(2)"></i>
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">备注</label>
+                    <div class="layui-input-block">
+                        <textarea name="Remark" placeholder="请输入内容" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
+<script>
+import Common from '../../../static/js/common.js'
+let {form}=layui
+export default {
+    props:['sort', 'contactEmail'],
+    data(){
+        return {
+            config: '',
+            operate:{
+                add: false,
+                delete: false,
+                save: false,
+                management: false,
+                modify: false,
+                emailSet: false,
+                test: false,
+                compared: false,
+                log: false,
+                application: false,
+                batchEdit: false
+            },
+            Tdata: null,  // 当前渲染的表格数据
+            currentObj: [],   // 当前选中对象 
+            currentRow: '',
+            // 一下保存变更的数据，更新、添加、修改、删除的数组
+            updateGroup: [],
+
+            /** */
+            hostgroup: '',
+            sorts: [],
+            cell: [],
+            
+            storageDevice: [],
+            contactsList:[],
+            batchTemp: {
+                nec: [{ key: "Hostgroups", value: this.$t('Table.Box.Batch.device.batchTemp[0]') },
+                    { key: "Contactgroups", value: this.$t('Table.Box.Batch.device.batchTemp[1]') },
+                    { key: "_SUB_GROUP", value: this.$t('Table.Box.Batch.device.batchTemp[2]') },
+                    { key: "Address", value: this.$t('Table.Box.Batch.device.batchTemp[3]') },
+                    { key: "_PORT", value: this.$t('Table.Box.Batch.device.batchTemp[4]') },
+                    { key: "_RS485_ADDR", value:this.$t('Table.Box.Batch.device.batchTemp[5]') }],
+                temp: [],
+                nec2: [
+                    {key: "Contactgroups", value: this.$t('Table.Box.Batch.monitoring.batchTemp[0]')},
+                    {key: "timeBase", value: this.$t('Table.Box.Batch.monitoring.batchTemp[1]')},
+                    {key: "MaxCheckAttempts", value: this.$t('Table.Box.Batch.monitoring.batchTemp[2]')},
+                    {key: "NotificationInterval", value: this.$t('Table.Box.Batch.monitoring.batchTemp[3]')},
+                    {key: "NotificationsEnabled", value: this.$t('Table.Box.Batch.monitoring.batchTemp[4]')}]
+            },
+
+            timeSlot: [],
+            timeBase: 0,
+            // 分页部分
+            laypageId: "tp_",
+            curr: 1,
+            curParams: '',
+            // 人员管理部分
+            userRole: false,
+            changePwd: false,
+            setPwd: true,
+            reSetPwd: false,
+            userEditBox:{
+                userName: ''
+            },
+            // 人员管理——联系人
+            currentContactMore:'',
+            hostBlist: '',
+            ServiceBlist: '',
+            code0: '',
+            code1: '',
+            
+            // 定时任务
+            timedTaskOrder: '',
+            timedTaskAddHost:'',
+            timedTaskAddServices: '',
+
+            // 联动参数 {Type: 1, ActionId: 2}, {Type: 2, ActionId: "3"}
+            linkageAdd: {
+                Actions: [],
+                Enabled: true,
+                HostId: null,
+                LimitValue: null,
+                Name: null,
+                Remark: "",
+                ServiceId: null,
+                Type: 0,
+                Id: null,
+                WorkValue: null,
+            },
+
+            compareVisible: false
+        }
+    },
+    mounted() {
+        if(this.sort=='devices'){window.app=this};
+        let vm = this;
+        
+        layui.use(["element", "layer", "table", "laypage", "form", "laydate"], () => {
+            layui.element.on('tab(setting-devices)', function(data){
+                if(data.index=='0'){
+                    vm.$router.push({path: '/setting'})
+                }
+            });
+        });
+        window.vm = this;
+        this.init();
+    },
+    methods:{
+        init() {
+            let vm = this;
+            vm.config = require('./tableConfig.js').default;
+            vm.operate.add = vm.config[vm.sort].operating.add;
+            vm.operate.delete = vm.config[vm.sort].operating.delete;
+            vm.operate.save = vm.config[vm.sort].operating.save;
+            vm.operate.management = vm.config[vm.sort].operating.management
+            vm.operate.modify = vm.config[vm.sort].operating.modify;
+            vm.operate.emailSet = vm.config[vm.sort].operating.emailSet;
+
+            vm.operate.test = vm.config[vm.sort].operating.test
+            vm.operate.compared = vm.config[vm.sort].operating.compared;
+            vm.operate.log = vm.config[vm.sort].operating.log;
+            vm.operate.application = vm.config[vm.sort].operating.application;
+            vm.operate.batchEdit = vm.config[vm.sort].operating.batchEdit;
+            this.laypageId += Math.floor(Math.random()*100);
+
+            this.getHosts()
+        },
+        /* 所有表格中通用方法 */
+        // 通用——获取联系人组
+        getContactgroup: function () {
+            var vm = this;
+            this.$http.get('/api/v1/setting/contactgroup')
+            .then((res)=>{
+                if(res.body.status){
+                    vm.contactsList = res.body.data;
+                }
+            });
+        },
+        // 通用——获取机房组
+        getHosts() {
+            let vm = this;
+            this.$http.get('/api/v1/setting/hostgroup')
+            .then((res)=>{
+                if(res.status){
+                    vm.hostgroup = res.body.data;
+                }
+            });
+            this.getContactgroup();
+        },
+        // 获取数据
+        getTableData(selectPage, params) {
+            let vm = this;
+            let url = vm.config[vm.sort].api;
+            if(vm.config[vm.sort].select){
+                url += "?page="+(selectPage?Number(selectPage-1):0)+"&row=10"; 
+            }
+            if(params!=undefined){
+                this.curParams = params;
+                let data = '';
+                for(let key in params){
+                    data += '&'+(key+'='+params[key]);
+                }
+                url += data
+            };
+            this.$http.get(url)
+            .then((res)=>{
+                if(vm.sort=='timedTask'){
+                    vm.Tdata = res.body;
+                    vm.renderTable(vm.Tdata);
+                }else{
+                    if(res.body.status){
+                        let data = res.body.data;
+                        vm.Tdata = vm.config[vm.sort].format(data, vm.hostgroup, vm.contactsList);
+                        vm.config[vm.sort].select && vm.tablepage(res.body.data.total);
+                        vm.renderTable(vm.Tdata);
+                    }else{
+                        if(vm.sort=='period' || vm.sort=='ports'){
+                            vm.Tdata = res.body;
+                            vm.renderTable(res.body);
+                        }else{
+                            vm.errorMsg(res.body.msg)
+                        }
+                    }
+                }
+            }, (res)=>{
+                console.log(res.body)
+            })
+        },
+        // 渲染，重载数据表格
+        renderTable(tdata) {
+            let vm = this;
+            let opts = {
+                elem: '#'+vm.sort, 
+                cols: [vm.config[vm.sort].cols],
+                data: tdata,
+                even: true,
+                page: false,
+                size: "lg",
+                skin: "set-table",
+                done(res) {
+                    let changeList = [];
+                    // console.log("================");
+                    // console.log(res.data);
+                    for(let i=0; i<res.data.length; i++){
+                        if(res.data[i].hasOwnProperty('edit')){
+                            $('.layui-table').find('tr[data-index='+i+']').css('color', 'green')
+                        }
+                    }
+                    // console.log(changeList);
+                    // console.log("================");
+                    // for(let j=0; j<changeList.length; j++){
+                        
+                    // }
+                }
+            }
+            layui.table.render(opts);
+            vm.$nextTick(()=>{
+                layui.form.render();
+            });
+            vm.monitor();
+        },
+        // 新增按钮
+        add() {
+            let vm = this;
+            if(this.config[this.sort].editType=='null'){
+                let editOpts = this.config[this.sort].editOpts(vm.Tdata.length)
+                this.Tdata.push(editOpts);
+                layui.table.reload(this.sort, {
+                    data: this.Tdata
+                });
+                editOpts.edit = 'add';
+                vm.updateGroup.push(editOpts);
+                if($('.deleteButton').find('span').length==0){
+                    $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                }
+            }else{
+                this.sort=='devices'&&this.addItem();
+                this.sort=='user'&&this.addBox();
+                this.sort=='leftMenu'&&this.addBox();
+                this.sort=='forward'&&this.addBox();
+                this.sort=='linkage'&&this.addBox();
+            }
+        },
+        // 新增弹框配置设置， 实现
+        addBox() {
+            let vm = this, dom, tit, con, btn, area = ['545px', '370px'];
+            if(vm.sort=='user'){
+                vm.userEditBox.userName = '';
+                this.setPwd = true;
+                this.changePwd = false;
+
+                tit = vm.$t('Table.Box.Add.user.title');
+                con = $('#userEditBox')
+                btn = [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")];
+            }else if(vm.sort == 'contacts'){
+                tit = vm.$t('Table.Box.Email.contacts.title');
+                con = $('#setEmail');
+                btn = [vm.$t('Table.Box.Email.contacts.btn[0]'), vm.$t('Table.Box.Email.contacts.btn[1]')]
+            }else if(vm.sort == 'leftMenu'){
+                tit= vm.$t('mMore.leftMenu.Prompt.title[0]');
+                btn = [vm.$t('mMore.leftMenu.Prompt.btn[0]'), vm.$t('mMore.leftMenu.Prompt.btn[1]')];
+                con = $('#leftMenuBox')
+            }else if(vm.sort == 'forward'){
+                tit = vm.$t('Table.Box.Add.forward.title');
+                btn = [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")];
+                con = vm.config[vm.sort].editAdd();
+            }else if(vm.sort == 'linkage'){
+                tit = '新增联动>>';
+                btn =['确定', '取消'];
+                con = $('#linkageBox');
+            }
+            layer.open({
+                type: 1,
+                title: tit,
+                area: area,
+                shadeClose: true,
+                content: con,
+                skin: 'set-Table',
+                btn: btn,
+                success: function(layero, index){
+                    layui.form.render();
+                    if(vm.sort=="user"){
+                        $("#modityUserForm").find('input[name="userName"]').attr("readonly", false)
+                        vm.userRole = false;
+                        layui.form.val("modityUserForm", {
+                            "userName": "",
+                            "Type": "0",
+                            "pwd": "",
+                            "repwd": ""
+                        })
+                        // 人员管理员的角色分配，附加机房和联系人组的条件
+                        layui.form.on('select(selectUserRole)', function(data){
+                            data.value!=0 ? vm.userRole=true : vm.userRole=false;
+                            vm.$nextTick(()=>{
+                                $("#modityUserForm").find('input[name="userName"]').attr("readonly", false)
+                                layui.form.render();
+                                layui.form.on('checkbox(selectAll)', function(data){
+                                    if(data.elem.checked){
+                                        let sonList = $(data.elem).nextAll().find('input:checkbox');
+                                        $.each(sonList, (i,e)=>{
+                                            $(e)[0].checked=true;
+                                        })
+                                    }else{
+                                        let sonList = $(data.elem).nextAll().find('input:checkbox');
+                                        $.each(sonList, (i,e)=>{
+                                            $(e)[0].checked=false;
+                                        })
+                                    }
+                                    layui.form.render();
+                                })
+                            });
+                        });
+                    }else if(vm.sort=="linkage"){
+                        layui.form.on('select(linkageAdd)', function(data){
+                            if(data.elem.name=='hostgroup'){
+                                vm.timedTaskAddHost = vm.hostgroup.find((item)=>{if(item.Id==Number(data.value)){return item}}).Hosts;
+                                vm.$nextTick(()=>{
+                                    layui.form.render('select');
+                                });
+                            }else if(data.elem.name=='HostId'){
+                                vm.$http.get('/api/v1/setting/service?hid='+data.value)
+                                .then((res)=>{
+                                    vm.timedTaskAddServices = res.body.data.services;
+                                    vm.$nextTick(()=>{
+                                        layui.form.render('select');
+                                    });
+                                });
+                            }
+                        });
+                    }else if(vm.sort=="contacts"){
+                        layui.form.val("contactEmailForm", {
+                            User2: vm.contactEmail.User2,
+                            User3: vm.contactEmail.User3,
+                            User4: vm.contactEmail.User4,
+                        })
+                    };
+                },
+                yes: function(index, layero){
+                    let res;
+                    // 获取弹框的数据
+                    let postData = layero.find('form').serializeArray();
+                    //整理弹框中数据的结构格式，方便向后台传送。
+                    // 检查反馈，输入数据是否合理
+                    if(vm.sort == 'linkage'){
+                        vm.linkageAdd.Name = postData[0].value;
+                        vm.linkageAdd.HostId = postData[2].value;
+                        vm.linkageAdd.ServiceId = postData[3].value;
+                        vm.linkageAdd.WorkValue = postData[4].value;
+                        vm.linkageAdd.LimitValue = postData[5].value;
+                        vm.linkageAdd.Remark = postData[6].value;
+
+                        if(vm.linkageAdd.Name==""){
+                            vm.errorMsg("联动参数名称不能为空");
+                            return false
+                        }
+                        if(vm.linkageAdd.WorkValue==""||vm.linkageAdd.LimitValue==""){
+                            vm.errorMsg("阈值和工作值不能为空");
+                            return false
+                        }else if(vm.linkageAdd.WorkValue==vm.linkageAdd.LimitValue){
+                            vm.errorMsg("阈值和工作值不能相等");
+                            return false
+                        }
+                        if(vm.linkageAdd.Actions.length<=0){
+                            vm.errorMsg('联动命令不能为空')
+                        }
+                        res = {data: vm.linkageAdd}
+                    }else if(vm.sort== 'contacts'){
+                        res = {
+                            Id: vm.contactEmail.Id,
+                            User2: postData.find((item)=>item.name=='User2').value,
+                            User3: postData.find((item)=>item.name=='User3').value,
+                            User4: postData.find((item)=>item.name=='User4').value,
+                        };
+                        // 验证邮箱格式
+                        let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式;
+                        if(!reg.test(res.User2)){return vm.errorMsg('邮箱格式错误'); return false}
+                    }else{
+                        res = vm.config[vm.sort].submitFile('add', postData);
+                        if(!res.feedback.status){ vm.errorMsg(res.feedback.msg); return false; }
+                    }
+                    // 统一向后台发送数据，并且重新刷新表格数据。
+                    if(vm.sort== 'contacts'){
+                        vm.$http.post('/config/rest/Resources/'+res.Id+"?to_do=smtpTest", res)
+                        .then((res)=>{
+                            if(res.body.status){
+                                vm.successMsg(res.body.msg)
+                            }else{
+                                vm.errorMsg(res.body.msg)
+                            }
+                        },(err)=>{
+                            vm.errorMsg(err.body.error)
+                        });
+                    }else{
+                        vm.$http.post(vm.config[vm.sort].onSubmit('create'), res.data)
+                        .then((res)=>{
+                            if(res.body.status){
+                                vm.getTableData();
+                                vm.successMsg(res.body.msg)
+                            }else{
+                                vm.errorMsg(res.body.msg)
+                            }
+                        },(err)=>{
+                            console.log(err.body);
+                        });
+                    }
+                    layer.close(index);
+                },
+                btn2: function(index, layero) {
+                    let res;
+                    if(vm.sort== 'contacts'){
+                        let postData = layero.find('form').serializeArray();
+                        res = {
+                            Id: vm.contactEmail.Id,
+                            User2: postData.find((item)=>item.name=='User2').value,
+                            User3: postData.find((item)=>item.name=='User3').value,
+                            User4: postData.find((item)=>item.name=='User4').value,
+                        };
+                        // 验证邮箱格式
+                        let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式;
+                        if(!reg.test(res.User2)){return vm.errorMsg('邮箱格式错误123'); return false};
+                        vm.$http.post('/config/rest/Resources/'+res.Id, res)
+                        .then((res)=>{
+                            if(!res.status){
+                                vm.errorMsg(res.body)
+                            }
+                            layer.close(index);
+                        },(err)=>{
+                            vm.errorMsg(err.body)
+                        });
+                    }else{
+                        console.log("执行了这里");
+                        layer.close(index);
+                    }
+                }
+            });
+        },
+        // 删除功能
+        delet() {
+            let vm = this;
+            if(vm.currentObj.length==0){return vm.errorMsg(vm.$t('Table.Box.Delete.tips[0]'))}
+            
+            layer.confirm(vm.$t('Table.Box.Delete.content'), { 
+                    title:vm.$t('Table.Box.Delete.title'),
+                    skin: 'set-Table',
+                    btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                }, function(index){
+                    console.log(vm.currentObj);
+                    $.each(vm.currentObj,(i,e)=>{
+                        e.edit='delete';
+                        
+                        if(e.hasOwnProperty('id')){
+                            let index;
+                            vm.updateGroup.forEach((k,j)=>{
+                                if(k.id==e.id){index=j}
+                            });
+                            vm.updateGroup.splice(index, 1);
+                            console.log("具有id", e);
+                        }else{
+                            vm.updateGroup.push(e);
+                            // if(vm.updateGroup.length>0){
+                            //     console.log("没有id", e);
+                            //     let index2;
+                            //     // $.each(vm.updateGroup, (j,k)=>{
+                            //     //     if(k.Name==e.Name){
+                            //     //         index2 = j;
+                            //     //     }
+                            //     //     if(index2>=0){vm.updateGroup.splice(j,1)};
+                            //         vm.updateGroup.push(e);
+                            //     // });
+                            // }else{
+                            //     console.log("没有id的一个",e);
+                            //     vm.updateGroup.push(e);
+                            // }
+                        }
+                    })
+                    console.log("当前的全部", vm.updateGroup);
+                    
+                    //这里是界面上删除表格中的一行 
+                    for(let i=0; i<vm.currentObj.length; i++){
+                        for(let j=0; j<vm.Tdata.length; j++){
+                            if(vm.currentObj[i].Name==vm.Tdata[j].Name){
+                                vm.Tdata.splice(j, 1);
+                                j--;
+                            }
+                        }
+                    }
+
+                    if(vm.sort=='user'){
+                        $.each(vm.currentObj, (i, e)=>{
+                            vm.$http.get(vm.config[vm.sort].onSubmit('delete')+'?uid='+e.Id)
+                            .then((res)=>{
+                                if(res.body.status){
+                                    vm.successMsg(res.body.msg);
+                                }else{
+                                    vm.errorMsg(res.body.msg);
+                                }
+                            }, (err)=>{
+                                console.log(err.body);
+                            });
+                        })
+                    }else if(vm.sort=='leftMenu'){
+                        $.each(vm.currentObj, (i, e)=>{
+                            vm.$http.get(vm.config[vm.sort].onSubmit('delete')+'?id='+e.Id)
+                            .then((res)=>{
+                                if(res.body.status){
+                                    vm.successMsg(res.body.msg);
+                                }else{
+                                    vm.errorMsg(res.body.msg);
+                                }
+                            }, (err)=>{
+                                console.log(err.body);
+                            });
+                        })
+                    }else if(vm.sort=='linkage'){
+                        $.each(vm.currentObj, (i, e)=>{
+                            vm.$http.get(vm.config[vm.sort].onSubmit('delete')+'?id='+e.Id)
+                            .then((res)=>{
+                                if(res.body.status){
+                                    vm.successMsg(res.body.msg);
+                                }else{
+                                    vm.errorMsg(res.body.msg);
+                                }
+                            }, (err)=>{
+                                console.log(err.body);
+                            });
+                        })
+                    }
+                    
+                    layui.table.reload(vm.sort, {
+                        data: vm.Tdata
+                    })
+                    vm.currentObj = [];
+
+                    layer.close(index);
+                    if($('.deleteButton').find('span').length==0){
+                        $('.deleteButton').append('<span class="layui-badge-dot"></span>');
+                    }
+                });
+        },
+        // 更新机房，保存机房数据
+        updated() {
+            let vm = this; 
+            if(vm.updateGroup.length!=0){
+
+                $.each(vm.updateGroup, (i, e)=>{
+                    if(e.edit=='add'){
+                        let data = vm.config[vm.sort].submitFile('create', e);
+                        if(data.error){
+                            vm.errorMsg(data.errMsg)
+                            return;
+                        }
+                        
+                        vm.$http.post(vm.config[vm.sort].onSubmit('create'), data)
+                        .then((res)=>{
+                            if(res.body.status!=undefined){
+                                if(res.body.status){
+                                    vm.successMsg(vm.$t('Tips[4]'));
+                                }else{
+                                    vm.errorMsg(res.body.msg);
+                                }
+                            }else if(res.status=='200'){
+                                vm.successMsg(vm.$t('Tips[4]'));
+                            }else{
+                                vm.errorMsg(res);
+                            }
+                            $('.deleteButton span').remove();
+                            vm.curr = 1;
+                            vm.getTableData();
+                        },(err)=>{
+                            vm.errorMsg(err.body.error);
+                        });
+                    }else if(e.edit=='delete'){
+                        if(e.id != ''){
+                            if(vm.sort=='period'||vm.sort=='timedTask'){
+                                vm.$http.delete(vm.config[vm.sort].onSubmit('delete', e.Id))
+                                .then((res)=>{
+                                    vm.successMsg(vm.$t('Tips[5]'))
+                                    $('.deleteButton span').remove();
+                                },(err)=>{ 
+                                    // 错误反馈
+                                    vm.errorMsg(err.body.msg);
+                                });
+                                vm.curr = 1;
+                                vm.getTableData();
+                            }else{
+                                let data = vm.config[vm.sort].submitFile('delete', e);
+                                vm.$http.get(vm.config[vm.sort].onSubmit('delete'), {params: data})
+                                .then((res)=>{
+                                    vm.successMsg(vm.$t('Tips[5]'))
+                                    $('.deleteButton span').remove()
+                                    vm.getTableData();
+                                },(err)=>{ 
+                                    // 错误反馈
+                                    vm.errorMsg(err.body.msg);
+                                });
+                                vm.curr = 1;
+                                vm.getTableData();
+                            }
+                        }
+                    }else if(e.edit=='update'){
+                        let data = vm.config[vm.sort].submitFile('update', e );
+                        vm.$http.post(vm.config[vm.sort].onSubmit('update', e.Id), data)
+                        .then((res)=>{
+                            if(vm.sort=='period'||vm.sort=='timedTask'){
+                                if(res.ok){
+                                    vm.successMsg(vm.$t('Tips[6]'));
+                                    return;
+                                }
+                            }
+                            if(res.body.status){
+                                vm.successMsg(vm.$t('Tips[6]'))
+                                $('.deleteButton span').remove();
+                                if(vm.sort=='monitoring'){
+                                    return ;
+                                }
+                                vm.curr = 1;
+                                vm.getTableData();
+                            }else{
+                                vm.errorMsg(res.body.msg);
+                                if($('.deleteButton').find('span').length==0){
+                                    $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                                }
+                            }
+                        },(err)=>{
+                            vm.errorMsg(err.body.error);
+                        });
+                    }
+                    // else if(e.edit=='create'){
+                    //     let data = vm.config[vm.sort].submitFile('create', e );
+                    //     vm.$http.post(vm.config[vm.sort].onSubmit('create'), data)
+                    //     .then((res)=>{
+                    //         vm.successMsg('创建成功')
+                    //         $('.deleteButton span').remove()
+                    //         console.log(res.body);
+                    //     },(err)=>{
+                    //         vm.errorMsg(err.body.msg);
+                    //     });
+                    // }
+                });
+                vm.updateGroup = [];
+                
+            }
+        },
+        // 定时任务的 测试
+        test() {
+            let data = this.currentObj;
+            for(let i=0; i<data.length; i++){
+                this.$http.post('/config/rest/ControlTasks/'+data[i].Id+'?to_do=execute')
+                .then((res)=>{
+                    this.successMsg(res.body.msg)
+                },(err)=>{
+                    this.errorMsg(err.body.error)
+                });
+            }
+            // this.$http.post('/config/rest/ControlTasks/'+)
+        },
+        compared(){
+            if(this.currentObj.length<2){
+                this.errorMsg(vm.$t('Table.Box.comcontrast.timedTask.tips[0]'));
+                return false;
+            }
+            this.compareVisible = !this.compareVisible;
+            if(this.compareVisible){
+                let vm = this, compareList = this.currentObj, newCols = [[ {field: 'itemName', title: '', align: 'center'} ]]
+                let newCompareList = [
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[0]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[1]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[2]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[3]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[4]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[5]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[6]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[7]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[8]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[9]')},
+                    {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[10]')}
+                ];
+                
+                $.each(compareList, (i,e)=>{
+                    let cycle = ''
+                    if(e.Repeat){
+                        cycle += e.Monday?vm.$t('Table.Box.Cell.timedTask.cycle.option[0]'):'';
+                        cycle += e.Tuesday?vm.$t('Table.Box.Cell.timedTask.cycle.option[1]'):'';
+                        cycle += e.Wednesday?vm.$t('Table.Box.Cell.timedTask.cycle.option[2]'):'';
+                        cycle += e.Thursday?vm.$t('Table.Box.Cell.timedTask.cycle.option[3]'):'';
+                        cycle += e.Friday?vm.$t('Table.Box.Cell.timedTask.cycle.option[4]'):'';
+                        cycle += e.Saturday?vm.$t('Table.Box.Cell.timedTask.cycle.option[5]'):'';
+                        cycle += e.Sunday?vm.$t('Table.Box.Cell.timedTask.cycle.option[6]'):'';
+                    }else{
+                        cycle += e.ExecuteDate
+                    }
+                    newCompareList[0]['c'+(i+1)] = e.CreatedTime;
+                    newCompareList[1]['c'+(i+1)] = e.CreatedBy;
+                    newCompareList[2]['c'+(i+1)] = e.LastExecutedBy;
+                    newCompareList[3]['c'+(i+1)] = e.LastExecutedTime;
+                    newCompareList[4]['c'+(i+1)] = e.LastFinishedTime;
+                    newCompareList[5]['c'+(i+1)] = e.LastFinishedStatus;
+                    newCompareList[6]['c'+(i+1)] = e.ExecuteTime;
+                    newCompareList[7]['c'+(i+1)] = e.ExecuteDate;
+                    newCompareList[8]['c'+(i+1)] = e.Enabled;
+                    newCompareList[9]['c'+(i+1)] = cycle;
+                    newCompareList[10]['c'+(i+1)] = e.Status;
+                })
+                
+                for(let i=0; i<compareList.length; i++){
+                    newCols[0].push(
+                        {field: 'c'+(i+1), title: compareList[i].Name, align: 'center'},
+                    )
+                }
+                let opts = {
+                    elem: '#'+vm.sort,
+                    cols: newCols,
+                    data: newCompareList,
+                    even: true,
+                    page: false,
+                    size: "lg",
+                    limit: 11
+                }
+                layui.table.render(opts);
+            }else{
+                this.renderTable(this.Tdata);
+            }
+        },
+        // 人员管理——登录用户修改函数， 使用在：登录用户表格
+        modity() {
+            let vm = this, id, con, tit;
+            var renewPwd=false;
+            if( this.currentObj.length<= 0 ){
+                vm.sort=='linkage'&& vm.errorMsg(vm.$t('Table.Box.modify.tips[0]'));
+                vm.sort=='user'&& vm.errorMsg(vm.$t('Table.Box.modify.tips[1]'));
+                vm.sort=='leftMenu'&& vm.errorMsg(vm.$t('Table.Box.modify.tips[2]'));
+                return false;
+            }
+            if(vm.sort=='user'){
+                console.log("点击修改user");
+                vm.userEditBox.userName = vm.currentObj[0].Name;
+                id = vm.currentObj[0].Id;
+                this.setPwd = false;
+                this.changePwd = true;
+
+                tit = vm.$t('Table.Box.modify.title')
+                con = $('#userEditBox');
+            }else if(vm.sort=='leftMenu'){
+                tit = vm.$t("mMore.leftMenu.Prompt.title[1]")
+                con = $('#leftMenuBox')
+
+                layui.form.val('leftMenuBox', {
+                    'Name': vm.currentObj[vm.currentObj.length-1].Name,
+                    'Link': vm.currentObj[vm.currentObj.length-1].Link,
+                    'Subgroup': vm.currentObj[vm.currentObj.length-1].Subgroup,
+                    'Target': vm.currentObj[vm.currentObj.length-1].Target,
+                    'Hostgroup': vm.currentObj[vm.currentObj.length-1].Hostgroup
+                })
+            }else if(vm.sort=='linkage'){
+                tit = '修改联动>>';
+                con = $('#linkageBox');
+                let item = vm.hostgroup.find((item)=>{if(item.Id==Number(vm.currentObj[vm.currentObj.length-1].Id)){return item}});
+                
+                vm.timedTaskAddHost = item.Hosts;
+                vm.$http.get('/api/v1/setting/service?hid='+vm.currentObj[vm.currentObj.length-1].HostId)
+                .then((res)=>{
+                    vm.timedTaskAddServices = res.body.data.services;
+                    vm.$nextTick(()=>{
+                        layui.form.val('linkageBox', {
+                            'Name': vm.currentObj[vm.currentObj.length-1].Name,
+                            'hostgroup': vm.currentObj[vm.currentObj.length-1].Id,
+                            'HostId': vm.currentObj[vm.currentObj.length-1].HostId,
+                            'ServiceId': vm.currentObj[vm.currentObj.length-1].ServiceId,
+                            'WorkValue': vm.currentObj[vm.currentObj.length-1].WorkValue,
+                            'LimitValue': vm.currentObj[vm.currentObj.length-1].LimitValue
+                        })
+                        layer.open({
+                            type: 1,
+                            title: tit,
+                            area: ['545px', '320px'],
+                            shadeClose: true,
+                            content: con,
+                            skin: 'set-Table',
+                            btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                            success: function(){
+                                vm.$nextTick(()=>{
+                                    layui.form.render();
+                                });
+                            },
+                            yes: function(index, layero) {
+                                // 获取弹框的数据
+                                let postData = layero.find('form').serializeArray();
+                                // 调整数据结构 设置用户权限什么的，不涉及修改密码；
+                            
+                                let data = vm.config[vm.sort].submitFile('update', postData);
+                                data.data.Id = vm.currentObj[vm.currentObj.length-1].Id;
+                                vm.$http.post(vm.config[vm.sort].onSubmit('update'), data.data)
+                                .then((res)=>{
+                                    if(res.body.status){
+                                        vm.successMsg(res.body.msg)
+                                        vm.getTableData();
+                                    }else{
+                                        vm.errorMsg(res.body.msg);
+                                    }
+                                },(err)=>{
+                                    vm.errorMsg(err.body.msg)
+                                });
+                                layer.close(index);
+                            },
+                            end() { }
+                        });
+                    });
+                });
+            }
+            
+            if(vm.sort!='linkage'){
+                layer.open({
+                    type: 1,
+                    title: tit,
+                    area: ['545px', '320px'],
+                    shadeClose: true,
+                    content: con,
+                    btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                    skin: 'set-Table',
+                    success: function(){
+                        if(vm.sort=='user'){
+                            vm.$nextTick(function(){
+                                vm.currentObj[0].Type!=0 ? vm.userRole=true : vm.userRole=false;
+                                vm.$nextTick(()=>{
+                                    $("#modityUserForm").find('input[name="userName"]').attr("readonly", true)
+                                    for(let it of vm.currentObj[0].HostGroups){
+                                        $("#modityUserForm .hostAll").find("input[value="+it.Id+"]").attr('checked', true)
+                                    }
+                                    for(let it of vm.currentObj[0].ContactGroups){
+                                        $("#modityUserForm .contactAll").find("input[value="+it.Id+"]").attr('checked', true)
+                                    }
+                                    layui.form.render()
+                                });
+                                    
+                                // 这里是监听是否为某个角色
+                                layui.form.on('select(selectUserRole)', function(data){
+                                    data.value!=0 ? vm.userRole=true : vm.userRole=false;
+                                    vm.$nextTick(()=>{
+                                        layui.form.on('checkbox(selectAll)', function(data){
+                                            if(data.elem.checked){
+                                                let sonList = $(data.elem).nextAll().find('input:checkbox');
+                                                $.each(sonList, (i,e)=>{
+                                                    $(e)[0].checked=true;
+                                                })
+                                            }else{
+                                                let sonList = $(data.elem).nextAll().find('input:checkbox');
+                                                $.each(sonList, (i,e)=>{
+                                                    $(e)[0].checked=false;
+                                                })
+                                            }
+                                            layui.form.render();
+                                        });
+                                        layui.form.render();
+                                    });
+                                });
+                                
+                                // 这里是监听是否勾选修改密码！
+                                layui.form.on('checkbox(modityPwd)', function(data){
+                                    if(data.elem.checked){
+                                        vm.reSetPwd = true;
+                                        renewPwd = true;
+                                    }else{
+                                        vm.reSetPwd = false;
+                                    }
+                                })
+                                $("#selectUserRole").val(vm.currentObj[0].Type);
+                                layui.form.render();
+                            });
+                        }else{
+                            vm.$nextTick(()=>{
+                                layui.form.render();
+                                layui.form.render('select');
+                            });
+                        }
+                    },
+                    yes: function(index, layero) {
+                        // 获取弹框的数据
+                        let postData = layero.find('form').serializeArray();
+                        // 调整数据结构 设置用户权限什么的，不涉及修改密码；
+                        if(vm.sort=='user'){
+                            let data = {
+                                contactgroups: [],
+                                hostgroups: [],
+                                id: id,
+                                type: ''
+                            };
+                            let changePwd = {
+                                newpwd: "",
+                                oldpwd: "",
+                                renewpwd: "",
+                                user: ""
+                            }
+                           
+                            $.each(postData, (i, e)=>{
+                                if(e.name=="Type"){data.type=e.value};
+                                if(e.name=="host"){data.hostgroups.push({id: e.value})};
+                                if(e.name=='contact'){data.contactgroups.push({id: e.value})};
+                            })
+                            vm.$http.post(vm.config[vm.sort].onSubmit('update'), data)
+                            .then((res)=>{
+                                if(res.body.status){
+                                    vm.successMsg(res.body.msg);
+                                    vm.getTableData();
+                                }else{
+                                    vm.errorMsg(res.body.msg);
+                                }
+                                if(renewPwd){
+                                    $.each(postData, (i, e)=>{
+                                        if(e.name=="userName"){changePwd.user=e.value}
+                                        if(e.name=="newpwd"){changePwd.newpwd=e.value};
+                                        if(e.name=="oldpwd"){changePwd.oldpwd=e.value};
+                                        if(e.name=='renewpwd'){changePwd.renewpwd=e.value};
+                                    })
+                                    vm.$http.post(vm.config[vm.sort].onSubmit('changepwd'), changePwd)
+                                    .then((res)=>{
+                                        if(res.body.status){
+                                            vm.successMsg(res.body.msg);
+                                            vm.getTableData();
+                                        }else{
+                                            vm.errorMsg(res.body.msg);
+                                        }
+                                        vm.reSetPwd = false;
+                                        $('#userEditBox').find('form')[0].reset();
+                                    },(err)=>{
+                                        vm.errorMsg(err.body.msg);
+                                        $('#userEditBox').find('form')[0].reset();
+                                    });
+                                    layer.close(index);
+                                }
+                            },(err)=>{
+                                vm.errorMsg(err.body.msg);
+                                $('#userEditBox').find('form')[0].reset();
+
+                            });
+                        }else{
+                            let data = vm.config[vm.sort].submitFile('update', postData);
+                            data.data.Id = vm.currentObj[vm.currentObj.length-1].Id;
+                            vm.$http.post(vm.config[vm.sort].onSubmit('update'), data.data)
+                            .then((res)=>{
+                                if(res.body.status){
+                                    vm.successMsg(res.body.msg)
+                                    vm.getTableData();
+                                }else{
+                                    vm.errorMsg(res.body.msg);
+                                }
+                            },(err)=>{
+                                vm.errorMsg(err.body.msg)
+                            });
+                        }
+                        layer.close(index);
+                    },
+                    end() {
+                        if(vm.sort=='leftMenu'){
+                            let box = $('#leftMenuBox');
+                            box.find('input[name="Name"]').val('');
+                            box.find('input[name="Link"]').val('');
+                            box.find('input[name="Subgroup"]').val('')
+                            box.find('select[name="Target"]').val('');
+                            box.find('select[name="Hostgroup"]').val('')
+                        }
+                    }
+                });
+            }
+            
+        },
+        /****************表格监听功能***************************************************************************************************/
+        monitor() {
+            let vm = this;
+            //监听单元格 编辑事件
+            layui.table.on('edit('+vm.sort+')', function(obj){
+                if(obj.field=='name' || obj.field=='Name'){
+                    if(obj.value==""){
+                        vm.errorMsg("参数不能为空");
+                        return false
+                    }
+                }
+                // 对于联系人的相关邮箱、号码尽享验证
+                if(vm.sort=='contacts'){
+                    if(obj.field=='Email'){
+                        let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式;
+                        if(!reg.test(obj.value)){return vm.errorMsg('邮箱格式错误')}
+                    }
+                    if(obj.field=='Address1'||obj.field=='Address2'){
+                        let reg = new RegExp("^[1][3,4,5,7,8][0-9]{9}$");
+                        if(!reg.test(obj.value)){return vm.errorMsg("号码有误")}
+                    }
+                }
+                if(obj.data.edit=='add'){
+                    var data = obj.data;
+                }else{
+                    var data = obj.data; //得到所在行所有键值,那条数据
+                    data.edit = 'update';
+                }
+                let index, index2;
+                $.each(vm.updateGroup, (i, e)=>{
+                    if(obj.data.hasOwnProperty("Id")){
+                        if(obj.data.Id===e.Id){
+                            index = i;
+                        }else{
+                            return
+                        }
+                    }else{
+                        if(obj.data.id===e.id){
+                            index = i;
+                        }else{
+                            return
+                        }
+                    }
+                })
+                if(index>=0){
+                    vm.updateGroup.splice(index, 1)
+                }
+                vm.updateGroup.push(data);
+                // 对于一些直接添加在表格中的增加一行的表格，则需要重新绘制一下表格
+                if(vm.sort=='hostGroup' ||vm.sort=='devices' ||vm.sort=='contactGroup'|| vm.sort=='contacts'|| vm.sort=='period'||vm.sort=='timedTask') {
+                    $.each(vm.Tdata, (j, k)=>{
+                        if(obj.data.hasOwnProperty('Id')){
+                            if(obj.data.Id==k.Id){
+                                index2 = j;
+                            }
+                        }else{
+                            if(obj.data.id==k.id){
+                                index2 = j;
+                            }
+                        }
+                        
+                    });
+                    if(index2>=0){
+                        vm.Tdata.splice(index2, 1);
+                    }
+                    vm.Tdata.push(data);
+                    // layui.table.reload(vm.sort, {
+                    //     data: vm.Tdata
+                    // });
+                }
+                
+                if($('.deleteButton').find('span').length==0){
+                    $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                }
+
+                /********************************** */
+                // console.log(this,obj);
+                $(this).parent().addClass('change');
+                /********************************** */
+            });
+
+            /* 监听设备组表格点击事件 并弹出表单框的类型 eg:设置——联系人组 */
+            layui.table.on('tool('+vm.sort+')', function(obj){
+                // let status = false
+                function openLayer(res, obj){
+                    let IDDDDDDDDDDDD=new Date().valueOf()
+                    layui.layer.open({
+                        type: 1,
+                        title: res[0],
+                        area: '550px',
+                        shadeClose: true,
+                        content: `
+                            <div class="layui-form"><form>${res[1]}<button hidden lay-submit lay-filter="${IDDDDDDDDDDDD}">提交</button> </form></div>
+                        `,
+                        skin: 'set-Table',
+                        success: function(layero,index){
+                            layui.form.render();
+                            if(vm.sort=="contacts"){
+                                layui.laydate.render({
+                                    elem: '#sel1',
+                                    type: 'time',
+                                    format: 'HH:mm'
+                                });
+                            }
+                            form.on('submit('+IDDDDDDDDDDDD+')', function(data){
+                                let {field}=data
+                                let mapBooleab=[];
+                                layero.find('input[value="true"]').each((i,el)=> $(el).attr('value') === 'true' && mapBooleab.push($(el).attr('name')))
+                                mapBooleab.forEach(key=>!field.hasOwnProperty(key)&&(field[key]=false))
+                                // 通过区分函数，实现不同的弹框功能
+                                vm.distinguish(obj, field);
+                                layui.table.reload(vm.sort, {
+                                    data: vm.Tdata
+                                });
+                                layer.close(index);
+                                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+                            });
+                        },
+                        btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                        yes: function(index, layero){
+                            $('[lay-filter="'+IDDDDDDDDDDDD+'"').click()
+                        },
+                    });
+                }
+
+                // Pretreatment预处理
+                if(obj.event == 'setContactgroups'){
+                    let res = vm.config[vm.sort].editContactGroups(obj.data, vm.contactsList);
+                    openLayer(res, obj);
+                }else if(obj.event == 'deviceMore'){
+                    let res = vm.config[vm.sort].editMore(obj.data, vm.timeSlot, vm.timeBase);
+                    openLayer(res, obj);
+                }else if(obj.event == 'monitoring'){
+                    vm.$emit('Monitoring', {hid:obj.data.Id});
+                    // status = true;
+                }else if(obj.event == 'checkOrder'){
+                    let res = vm.config[vm.sort].editCheckOrder(obj.data);
+                    openLayer(res, obj);
+                }else if(obj.event == 'serverMore'){
+                    let res = vm.config[vm.sort].editMore(obj.data, vm.timeSlot, vm.timeBase);
+                    openLayer(res, obj);
+                }else if(obj.event == 'passive_enabled'){
+                    obj.data._PASSIVE_ENABLED=="1"? obj.data._PASSIVE_ENABLED=0 : obj.data._PASSIVE_ENABLED=1
+                    obj.data.edit = 'update';
+                    
+                    if(vm.updateGroup.length>0){
+                        let index2=null;
+                        $.each(vm.updateGroup, (i,e)=>{
+                            if(e.Id===obj.data.Id){
+                                index2=i
+                            }
+                        })
+                        if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                        vm.updateGroup.push(obj.data);
+                    }else{
+                        vm.updateGroup.push(obj.data);
+                    }
+                    let index2;
+                    $.each(vm.Tdata, (i,e)=>{
+                        if(e.Id==obj.data.Id){
+                            return index2 = i
+                        }
+                    })
+                    vm.Tdata.splice(index2, 1, obj.data)
+                    vm.renderTable(vm.Tdata);
+                }else if(obj.event == 'chanewpwdostgroups'){
+                    layui.form.on('select(oldpwd)', function(data){
+                        obj.data.Hostgroups = [{renewpwd: data.value}];
+                        obj.data.edit = 'update';
+                        vm.updateGroup.push(obj.data);
+                    });
+                }else if(obj.event == 'timedNoti'){
+                    let res = vm.config[vm.sort].editTimedNoti(obj.data);
+                    openLayer(res, obj);
+                }else if(obj.event == 'contactsMore'){
+                    vm.contactsMore(obj.data);
+                }else if(obj.event.indexOf('setPeriod')>=0){
+                    vm.setPeriod(obj);
+                }else if(obj.event == 'selectChange'){
+                    // 监听下拉选择框的事件
+                    layui.form.on('select(sel)', function(data){
+                        if(obj.data[data.elem.name]==data.value){
+                            return;
+                        }else{
+                            // 筛选一下是否有重复
+                            let index;
+                            if(vm.updateGroup.length>0){
+                                $.each(vm.updateGroup, (i, e)=>{
+                                    if(e.Id==obj.data.Id){
+                                        index = i;
+                                    }
+                                })
+                            }
+                            if(Number(index)>=0){
+                                obj.data = '';
+                                obj.data = vm.updateGroup[index];
+                                vm.updateGroup.splice(index, 1);
+                            }
+
+                            //修改
+                            if(vm.sort=='devices'){
+                                let key = data.elem.name;
+                                obj.update({
+                                    key: [{Id: data.value}]
+                                });
+                                obj.data[data.elem.name] = [{Id: data.value}];
+                            }else{
+                                obj.data[data.elem.name] = data.value;
+                            }
+                            let index2;
+                            $.each(vm.Tdata, (i,e)=>{
+                                if(e.Id==obj.data.Id){
+                                    return index2 = i
+                                }
+                            })
+                            vm.Tdata.splice(index2, 1, obj.data)
+                            vm.renderTable(vm.Tdata);
+
+                            // 加入到更新数组
+                            obj.data.edit = 'update'
+                            vm.updateGroup.push(obj.data);
+                            obj = '';
+                        }
+                    });
+                }else if(obj.event == 'cycle'){
+                    let opts = {
+                        type: 1,
+                        title: vm.$t('Table.Box.Cell.timedTask.cycle.title'),
+                        area: ['700px', '350px'],
+                        shadeClose: true,
+                        btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                        content: $('#timedTaskIds'),
+                        skin: 'set-Table',
+                        success: function (layero, index){
+                            // 初始化选项
+                            let initOpts={
+                                'Repeat': obj.data.Repeat?'true':'false',
+                                'Monday': obj.data.Repeat?obj.data.Monday:false,
+                                'Tuesday': obj.data.Repeat?obj.data.Tuesday:false,
+                                'Wednesday': obj.data.Repeat?obj.data.Wednesday:false,
+                                'Thursday': obj.data.Repeat?obj.data.Thursday:false,
+                                'Friday': obj.data.Repeat?obj.data.Friday:false,
+                                'Saturday': obj.data.Repeat?obj.data.Saturday:false,
+                                'Sunday': obj.data.Repeat?obj.data.Sunday:false,
+                                'ExecuteDate': obj.data.Repeat?'':obj.data.ExecuteDate
+                            }
+                            layui.form.val('timedTaskIds', initOpts);
+                            if(!obj.data.Repeat){
+                                $('#timedTaskIds .timedTask-week input').attr('disabled', 'true');
+                                $('#timedTaskIds .timedTask-week .layui-unselect').addClass('layui-checkbox-disbaled');
+                                $('#timedTaskIds .timedTask-week .layui-unselect').addClass('layui-disabled');
+                            }else{
+                                $('#timedTaskIds .timedTask-once input').attr('disabled', 'true');
+                                $('#timedTaskIds .timedTask-once .layui-unselect').addClass('layui-checkbox-disbaled');
+                                $('#timedTaskIds .timedTask-once .layui-unselect').addClass('layui-disabled');
+                            }
+
+                            // 为了渲染 单选框 和 日期选择器
+                            layui.form.render();
+                            layui.laydate.render({
+                                elem: '#timedTaskLaydata'
+                            });
+                            
+                            // 监听 执行周期的选择
+                            vm.$nextTick(()=>{
+                                layui.form.on('radio(timedTask-Ids)', function(data){
+                                    if(data.value=='false'){
+                                        $('#timedTaskIds .timedTask-week input').attr('disabled', 'true');
+                                        $('#timedTaskIds .timedTask-week .layui-unselect').addClass('layui-checkbox-disbaled');
+                                        $('#timedTaskIds .timedTask-week .layui-unselect').addClass('layui-disabled');
+                                        
+                                        $('#timedTaskIds .timedTask-once input').removeAttr('disabled');
+                                        $('#timedTaskIds .timedTask-once .layui-unselect').removeClass('layui-checkbox-disbaled');
+                                        $('#timedTaskIds .timedTask-once .layui-unselect').removeClass('layui-disabled');
+                                    }else{
+                                        $('#timedTaskIds .timedTask-once input').attr('disabled', 'true');
+                                        $('#timedTaskIds .timedTask-once .layui-unselect').addClass('layui-checkbox-disbaled');
+                                        $('#timedTaskIds .timedTask-once .layui-unselect').addClass('layui-disabled');
+
+                                        $('#timedTaskIds .timedTask-week input').removeAttr('disabled');
+                                        $('#timedTaskIds .timedTask-week .layui-unselect').removeClass('layui-checkbox-disbaled');
+                                        $('#timedTaskIds .timedTask-week .layui-unselect').removeClass('layui-disabled');
+                                    }
+                                })
+                            });
+                        },
+                        yes: function(index, layero){
+                            let list = layero.find('form').serializeArray();
+                            let repeat = layero.find('input:radio[name="Repeat"]:checked').val();
+                            obj.data.Repeat = JSON.parse(repeat);
+                            if(repeat=='true'){
+                                //更新表格数据
+                                obj.update({
+                                    Repeat: JSON.parse(repeat),
+                                    Monday:layero.find('input:checkbox[name="Monday"]:checked').val()?true:false,
+                                    Tuesday: layero.find('input:checkbox[name="Tuesday"]:checked').val()?true:false,
+                                    Wednesday: layero.find('input:checkbox[name="Wednesday"]:checked').val()?true:false,
+                                    Thursday: layero.find('input:checkbox[name="Thursday"]:checked').val()?true:false,
+                                    Friday: layero.find('input:checkbox[name="Friday"]:checked').val()?true:false,
+                                    Saturday : layero.find('input:checkbox[name="Saturday"]:checked').val()?true:false,
+                                    Sunday:layero.find('input:checkbox[name="Sunday"]:checked').val()?true:false
+                                });
+                                //更新数据，以便提交
+                                obj.data.Monday = layero.find('input:checkbox[name="Monday"]:checked').val()?true:false;
+                                obj.data.Tuesday = layero.find('input:checkbox[name="Tuesday"]:checked').val()?true:false;
+                                obj.data.Wednesday = layero.find('input:checkbox[name="Wednesday"]:checked').val()?true:false;
+                                obj.data.Thursday = layero.find('input:checkbox[name="Thursday"]:checked').val()?true:false;
+                                obj.data.Friday = layero.find('input:checkbox[name="Friday"]:checked').val()?true:false;
+                                obj.data.Saturday = layero.find('input:checkbox[name="Saturday"]:checked').val()?true:false;
+                                obj.data.Sunday = layero.find('input:checkbox[name="Sunday"]:checked').val()?true:false
+                            }else{
+                                obj.update({
+                                    Repeat: JSON.parse(repeat),
+                                    ExecuteDate : layero.find('input:text[name="ExecuteDate"]').val()?layero.find('input:text[name="ExecuteDate"]').val():'2017-11-11',
+                                });
+                                obj.data.ExecuteDate = layero.find('input:text[name="ExecuteDate"]').val()?layero.find('input:text[name="ExecuteDate"]').val():'2017-11-11';
+                            }
+                            obj.data.edit=='add'?'':obj.data.edit = 'update';
+                            
+                            if(vm.updateGroup.length>0){
+                                let index2=null;
+                                $.each(vm.updateGroup, (i,e)=>{
+                                    if(e.Id===obj.data.Id){
+                                        index2=i
+                                    }
+                                })
+                                if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                            }
+                            vm.updateGroup.push(obj.data);
+                            vm.Tdata.forEach((el)=>{
+                                if(obj.data.hasOwnProperty('Id')){
+                                    console.log(el.Id == obj.data.Id);
+                                    if(el.Id == obj.data.Id){
+                                        for(let key in obj.data){
+                                            el[key] = obj.data[key];
+                                        }
+                                    }
+                                }else{
+                                    if(el.id == obj.data.id){
+                                        for(let key in obj.data){
+                                            el[key] = obj.data[key];
+                                        }
+                                    }
+                                }
+                            })
+                            vm.renderTable(vm.Tdata);
+                            layer.close(index);
+                        },
+                        end() {
+                            $('#timedTaskIds form')[0].reset();
+                        }
+                    }
+                    layer.open(opts);
+                }else if(obj.event == 'timedTaskOrder'){
+                    $.each(obj.data.actions, (i, e)=>{
+                        let a = vm.timedTaskOrder.find(item=>{if(item.Id===e.Id){item.LAY_CHECKED = true}});
+                    })
+                    let opts = {
+                        type: 0,
+                        title: vm.$t('Table.Box.Cell.timedTask.order.title'),
+                        area: '700px',
+                        shadeClose: true,
+                        btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                        skin: 'set-Table',
+                        content: `<table id="timedTaskOrderBox"></table>`,
+                        success: function(){
+                            layui.table.render({
+                                elem: '#timedTaskOrderBox',
+                                data: vm.timedTaskOrder,
+                                cols: [[ 
+                                    {type:'checkbox'},
+                                    {field: 'Name', title: vm.$t('Table.Box.Cell.timedTask.order.table_th[0]'), width: '20%'},
+                                    {field: 'host', title: vm.$t('Table.Box.Cell.timedTask.order.table_th[1]'), width: '20%'},
+                                    {field: 'RawCommand', title: vm.$t('Table.Box.Cell.timedTask.order.table_th[2]')}
+                                ]]
+                            });
+                        },
+                        yes: function(index, layero){
+                            let orderChecked = layui.table.checkStatus('timedTaskOrderBox');
+                            obj.data.actions = orderChecked.data;
+                            obj.update({
+                                actions: orderChecked.data
+                            });
+                            
+                            vm.renderTable(vm.Tdata);
+
+                            obj.data.edit=='add'?'':obj.data.edit = 'update';
+
+                            if(vm.updateGroup.length>0){
+                                let index2=null;
+                                $.each(vm.updateGroup, (i,e)=>{
+                                    if(e.Id===obj.data.Id){
+                                        index2=i
+                                    }
+                                })
+                                if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                                vm.updateGroup.push(obj.data);
+                            }else{
+                                vm.updateGroup.push(obj.data);
+                            }
+                            layer.close(index);
+                        },
+                        end(){
+                            // 将执行命令的表格复原
+                            $.each(vm.timedTaskOrder, (i, e)=>{
+                                e.LAY_CHECKED = false;
+                            })
+                        }
+                    }
+                    layui.layer.open(opts);
+                }else if(obj.event == 'timedTaskEnabled'){
+                    obj.data.Enabled==true? obj.data.Enabled=false : obj.data.Enabled=true
+                    obj.data.edit=='add'?'':obj.data.edit = 'update';
+                    
+                    if(vm.updateGroup.length>0){
+                        let index2=null;
+                        $.each(vm.updateGroup, (i,e)=>{
+                            if(e.Id===obj.data.Id){
+                                index2=i
+                            }
+                        })
+                        if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                        vm.updateGroup.push(obj.data);
+                    }else{
+                        vm.updateGroup.push(obj.data);
+                    }
+                    let index2;
+                    $.each(vm.Tdata, (i,e)=>{
+                        if(e.Id==obj.data.Id){
+                            return index2 = i
+                        }
+                    })
+                    vm.Tdata.splice(index2, 1, obj.data)
+                    vm.renderTable(vm.Tdata);
+                }else if(obj.event == 'overrunOrder'){
+                    vm.$http.get('/api/v1/linkage/command?lid='+obj.data.Id+'&type='+1)
+                    .then((res)=>{
+                        let temp = vm.config[vm.sort].editOverrun(res.body.data.actions)
+                        openLayer(temp, obj);
+                    })
+                }else if(obj.event == 'recoveryOrder'){
+                    vm.$http.get('/api/v1/linkage/command?lid='+obj.data.Id+'&type='+2)
+                    .then((res)=>{
+                        let temp = vm.config[vm.sort].editOverrun(res.body.data.actions)
+                        openLayer(temp, obj);
+                    })
+                }else if(obj.event == 'extendHosts'){
+                    vm.$emit('extendHosts', 'hello,world!', this)
+                }
+                /********************************** */
+                // console.log("双击事件",this, obj);
+                /********************************** */
+            })
+            // 监听表格复选
+            layui.table.on('checkbox('+vm.sort+')', function(obj){
+                var data = layui.table.checkStatus(vm.sort);
+                vm.currentObj=data.data;
+            });
+        },
+        /*****************************************************************************************************************************/
+        // 区分弹框
+        distinguish(obj, data) {
+            function isEmptyObject(obj) {   
+            　　for (var key in obj){
+            　　　　return false;//返回false，不为空对象
+            　　}　　
+            　　return true;//返回true，为空对象
+            }
+            let vm = this;
+            if( obj.event == 'setContactgroups' ){
+                if(isEmptyObject(data)){
+                    alert("至少勾选一个联系人组")
+                }else{
+                    let contact = [];
+                    for(let key in data){
+                        contact.push({Name: key, Id: data[key]});
+                    };
+                    if(vm.sort=='contacts'){
+                        $.each(vm.Tdata, (i,e)=>{
+                           if(obj.data.hasOwnProperty('Id')){
+                                if(e.Id==obj.data.Id){
+                                    obj.data.edit=='add'?"":e.edit = 'update';
+                                    let index;
+                                    $.each(vm.updateGroup, (i, e)=>{
+                                        if(obj.data.hasOwnProperty('Id')){
+                                            if(e.id==obj.data.Id){
+                                                index = i;
+                                            }
+                                        }else{
+                                            if(e.id==obj.data.id){
+                                                index = i;
+                                            }
+                                        }
+                                    })
+                                    if(index>=0){
+                                        vm.updateGroup.splice(index, 1)
+                                    }
+                                    for(let key in data){
+                                        e.ContactGroups.push({Id: data[key]});
+                                    };
+                                    e.ContactGroups = contact;
+                                    vm.updateGroup.push(e);
+                                }
+                             }else{
+                                if(e.id==obj.data.id){
+                                    obj.data.edit=='add'?"":e.edit = 'update';
+                                    let index;
+                                    $.each(vm.updateGroup, (i, e)=>{
+                                        if(e.id==obj.data.id){
+                                            index = i;
+                                        }
+                                    })
+                                    if(index>=0){
+                                        vm.updateGroup.splice(index, 1)
+                                    }
+                                    for(let key in data){
+                                        e.ContactGroups.push({Id: data[key]});
+                                    };
+                                    e.ContactGroups = contact;
+                                    vm.updateGroup.push(e);
+                                }
+                            }
+                        })
+                    }else{
+                        $.each(vm.Tdata, (i,e)=>{
+                            if(e.Id==obj.data.Id){
+                                obj.data.edit=='add'?"":e.edit = 'update';
+                                let index;
+                                $.each(vm.updateGroup, (i, e)=>{
+                                    if(obj.data.hasOwnProperty('Id')){
+                                        if(e.id==obj.data.Id){
+                                            index = i;
+                                        }
+                                    }else{
+                                        if(e.id==obj.data.id){
+                                            index = i;
+                                        }
+                                    }
+                                })
+                                if(index>=0){
+                                    vm.updateGroup.splice(index, 1)
+                                }
+                                e.Contactgroups = contact;
+                                vm.updateGroup.push(e);
+                            }
+                        })
+                    }
+                }
+            }else if(obj.event == 'deviceMore'){
+                for(let key in data){
+                    if("CheckInterval"==key || key=="NotificationInterval"){
+                        obj.data[key] = data[key]/vm.timeBase;
+                    }else{
+                        obj.data[key] = data[key];
+                    }
+                }
+                let index2;
+                $.each(vm.Tdata, (i,e)=>{
+                    if(e.Id==obj.data.Id){
+                        return index2 = i
+                    }
+                })
+                vm.Tdata.splice(index2, 1, obj.data)
+                vm.renderTable(vm.Tdata);
+                obj.data.edit = 'update';
+                if(vm.updateGroup.length>0){
+                    let index2=null;
+                    $.each(vm.updateGroup, (i,e)=>{
+                        if(e.Id===obj.data.Id){
+                            index2=i
+                        }
+                    })
+                    if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                    vm.updateGroup.push(obj.data);
+                }else{
+                    vm.updateGroup.push(obj.data);
+                }
+            }else if(obj.event == 'checkOrder'){
+                let order = [], val="";
+                for(let key in data){
+                    order.push(data[key]);
+                }
+                $.each(vm.Tdata, (i,e)=>{
+                    if(e.Id==obj.data.Id){
+                        e.edit = 'update';
+                        e.CheckCommandParameters = [];
+                        e.CheckCommandParameters.push(order.join(','));
+                        vm.updateGroup.push(e);
+                    }
+                })
+            }else if(obj.event == 'serverMore'){
+                // $.each(data, (j, f)=>{
+                //     if(f.name=="NormalCheckInterval"){
+                //         f.value = f.value/vm.timeBase;
+                //     }
+                //     obj.data[f.name] = f.value
+                // })
+                for(let key in data){
+                    if("NormalCheckInterval"==key || key=="NotificationInterval"){
+                        obj.data[key] = data[key]/vm.timeBase;
+                    }else{
+                        obj.data[key] = data[key];
+                    }
+                }
+                obj.data.edit = 'update';
+                if(vm.updateGroup.length>0){
+                    let index2=null;
+                    $.each(vm.updateGroup, (i,e)=>{
+                        if(e.Id===obj.data.Id){
+                            index2=i
+                        }
+                    })
+                    if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                    vm.updateGroup.push(obj.data);
+                }else{
+                    vm.updateGroup.push(obj.data);
+                }
+            }else if(obj.event == 'timedNoti'){
+                for(let key in data){
+                    if(key=='_SMS_NOTIFY_ENABLE'){
+                        if(data[key]=='true'){
+                            obj.data[key] = 'on'
+                        }else{
+                            obj.data[key] = 'off'
+                        }
+                    }else{
+                        obj.data[key] = data[key];
+                    }
+                }
+                obj.data.edit=='add'?'':obj.data.edit = 'update';
+                if(vm.updateGroup.length>0){
+                    let index2=null;
+                    $.each(vm.updateGroup, (i,e)=>{
+                        if(obj.data.hasOwnProperty('Id')){
+                            if(e.Id===obj.data.Id){
+                                index2=i
+                            }
+                        }else{
+                            if(e.id===obj.data.id){
+                                index2=i
+                            }
+                        }
+                    })
+                    if(index2>=0){vm.updateGroup.splice(index2, 1)};
+                };
+                console.log("当前加入的版本",obj,data);
+                vm.updateGroup.push(obj.data);
+                vm.Tdata.forEach((el)=>{
+                    if(el.id==obj.data.id){
+                        for(let key in obj.data){
+                            el[key] = obj.data[key];
+                        }
+                    }
+                })
+            }
+        },
+        // 加载时间间隔等参数
+        loadTime() {
+            var another = this;
+            this.$http.get('/config/rest/Timeperiods')
+            .then((res)=>{
+                this.timeSlot = res.body;
+            });
+            this.$http.get('/com/setting/global')
+            .then((res)=>{
+                this.timeBase = res.body.data.IntervalLength
+            })
+        },
+        // 分页函数
+        tablepage(count){
+            // debugger;
+            let vm = this;
+            let opts = {
+                elem: this.laypageId,
+                limit: 10,
+                theme: "#36a1f2",
+                first: vm.$t('laypage[0]'),
+                layout: ['prev', 'page', 'next', 'skip', 'count'],
+                last: vm.$t('laypage[1]'),
+                prev: "<em>"+vm.$t('laypage[2]')+"</em>",
+                next: "<em>"+vm.$t('laypage[3]')+"</em>",
+                count: count,
+                curr: vm.curr,
+                jump: function(obj, first){
+                    if(!first){
+                        vm.curr = obj.curr;
+                        vm.getTableData(obj.curr, vm.curParams);
+                    }
+                }
+            }
+            this.$nextTick(function(){
+                layui.laypage.render(opts);
+            });
+        },
+        // 错误提示
+        errorMsg(msg) {
+            layui.layer.open({
+                type: 1,
+                offset: 'rt',
+                title: '',
+                content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                btn: '',
+                skin: 'errorMsg',
+                shade: 0,
+                time: 0,
+                closeBtn:1
+            });
+        },
+        // 成功提示
+        successMsg(msg) {
+            layui.layer.open({
+                type: 0,
+                offset: 'rt',
+                title: '',
+                // content: '<i class="layui-icon layui-icon-ok"  style="font-size: 30px;"></i>'+msg,
+                content: '<img src="/public/images/currency/shield_ok.ico"/>'+msg,
+                btn: '',
+                skin: 'successMsg',
+                shade: 0,
+                time: 2000, 
+            });
+        },
+        /******************************************************************************************* */
+        /* 监控项tab调用总函数 */
+        renderMonitoring(params){
+            this.curr = 1; // 将分页调回 第一页
+            this.getContactgroup();
+            this.getTableData('', params);
+            this.loadTime();
+        },
+        /* 设备tab调用总函数 */
+        renderDevice() {
+            this.curr = 1; // 将分页调回 第一页
+            this.getHosts()
+            this.getTableData();
+            
+            this.getDevices();
+            this.loadTime();
+        },
+        /*****************设备设置************************************************************************ */
+        /* 设备设置中 设备组设置新增弹出框... */
+        // 获取设备列表
+        getDevices() {
+             // 获取设备列表数据
+            let vm = this;
+            var i = 0, j, k, l, sorts = [], flag;
+            this.$http.get('/api/v1/setting/host/template')
+            .then((res)=>{
+                let x = res.body;
+                if(x.status){
+                    vm.cell = x.data;
+                    for (i = 0; i < x.data.length; i++) {
+                        flag = true;
+                        for (j = 0; j < sorts.length; j++) {
+                            if (sorts[j].Name == x.data[i].Subjects[0]) {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        if (flag) {
+                            sorts.push({
+                                Name: x.data[i].Subjects[0],
+                                sorts: [{
+                                    Name: x.data[i].Subjects[1],
+                                    sorts: [{
+                                        Name: x.data[i].Subjects[2],
+                                        sorts: [[i, x.data[i].Subjects[3]]]
+                                    }]
+                                }]
+                            });
+                        } else {
+                            flag = true;
+                            for (k = 0; k < sorts[j].sorts.length; k++) {
+                                if (sorts[j].sorts[k].Name == x.data[i].Subjects[1]) {
+                                    flag = false;
+                                    break;
+                                }
+                            }
+                            if (flag) {
+                                sorts[j].sorts.push({
+                                    Name: x.data[i].Subjects[1],
+                                    sorts: [{
+                                        Name: x.data[i].Subjects[2],
+                                        sorts: [[i, x.data[i].Subjects[3]]]
+                                    }]
+                                });
+                            } else {
+                                flag = true;
+                                for (l = 0; l < sorts[j].sorts[k].sorts.length; l++) {
+                                    if (sorts[j].sorts[k].sorts[l].Name == x.data[i].Subjects[2]) {
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                                if (flag) {
+                                    sorts[j].sorts[k].sorts.push({
+                                        Name: x.data[i].Subjects[2],
+                                        sorts: [[i, x.data[i].Subjects[3]]]
+                                    });
+                                } else {
+                                    sorts[j].sorts[k].sorts[l].sorts.push([i, x.data[i].Subjects[3]]);
+                                }
+                            }
+                        }
+                    }
+                    vm.sorts = sorts;
+                }
+            });
+        },
+        // 设备管理——新增弹出框、 点击确认 执行添加设备指令
+        addItem() {
+            let vm = this;
+            layer.open({
+                type: 1,
+                // skin: 'addDevices',
+                skin: 'set-Table',
+                title: vm.$t('Table.Box.Add.device.title'),
+                area:   ['1024px', '450px'],
+                btn:[vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
+                shadeClose: true, 
+                content: $('.addDeviceBox'),
+                yes: function(index, layero) {
+                    var bkb = $(".layui-layer-content .C tbody tr"), i, j, k, l, code, A, B, C, flag = true;
+                    for (i = 0; i < bkb.length; i++) {
+                        A = bkb[i].childNodes[3].getAttribute("code") ? bkb[i].childNodes[3].getAttribute("code").split(",") : [];
+                        B = bkb[i].childNodes[5].getAttribute("code") ? bkb[i].childNodes[5].getAttribute("code").split(",") : [];
+                        C = parseInt(bkb[i].childNodes[0].getAttribute("hostid"));
+                        code = {
+                            Id: C,
+                            Number: parseInt(bkb[i].querySelector("input[type='number']").value),
+                            Contactgroups: [],
+                            Hostgroups: [parseInt(bkb[i].querySelector("select").value)],
+                            HostnameRelatedCommands: []
+                        };
+                        for (j = 0; j < A.length; j++) {
+                            for (k = 0; k < app.cell.length; k++) {
+                                if (app.cell[k].Id == C) {
+                                    break;
+                                }
+                            }
+                            for (l = 0; l < app.cell[k].HostnameRelatedCommands.length; l++) {
+                                if (app.cell[k].HostnameRelatedCommands[l].Id == parseInt(A[j])) {
+                                    code.HostnameRelatedCommands.push(app.cell[k].HostnameRelatedCommands[l]);
+                                }
+                            }
+                        }
+                        
+                        if (B.length > 0) {
+                            for (j = 0; j < B.length; j++) {
+                                code.Contactgroups.push(parseInt(B[j]));
+                            }
+                            vm.$http.post('/api/v1/setting/host/template/copy', {newHosts: [code]})
+                            .then((y)=>{
+                                if (y.body.status) {
+                                    let tempData;
+                                    tempData = vm.config[vm.sort].format(y.body.data, vm.hostgroup, vm.contactsList);
+                                    $.each(tempData, (i,e)=>{
+                                        e.edit = 'add',
+                                        e.id = new Date().valueOf(),
+                                        vm.updateGroup.push(e);
+                                    })
+                                    vm.Tdata = tempData.concat(vm.Tdata);
+                                    layui.table.reload(vm.sort, {
+                                        data: vm.Tdata
+                                    });
+                                    if($('.deleteButton').find('span').length==0){
+                                        $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                                    }
+                                    layui.layer.close(index);
+                                    return;
+                                } else {
+                                    alert(y.body.msg);
+                                    return;
+                                }
+                            });
+                        } else {
+                            flag = false;
+                        }
+                    }
+                    if (flag) {
+                        layui.layer.close(index);
+                    } else {
+                        vm.errorMsg(vm.$t('Table.Box.Add.device.tips[0]'));
+                    }
+                }
+            });
+        },
+        
+        // 设备管理——设备列表展开 
+        spread(x) {
+            $(x.target).siblings().slideToggle("slow").parent().toggleClass("active")
+            .siblings().removeClass("active").find("ul").slideUp("slow");
+        },
+        // 设备管理——穿梭框向右添加设备
+        aDevice() {
+            let vm = this;
+            var bkb = $(".A input[type='checkbox']"), i = 0, Ediost = [], one, two, code = '', code2 = '';
+            for (; i < bkb.length; i++) {
+                if (bkb[i].checked) {
+                    one = parseInt($(bkb[i]).attr("sortid"));
+                    two = $(bkb[i]).parent()[0].textContent;
+                    Ediost.push([one, two]);
+                    bkb[i].checked=false;
+                    $(bkb[i]).attr("disabled","disabled").parents("label").attr("disabled","disabled");
+                }
+            }
+            //右边表格中机房组下拉选框，
+                for (i = 0; i < vm.hostgroup.length; i++) {
+                    code2 += '<option value=' + vm.hostgroup[i].Id + '>' + vm.hostgroup[i].Name + '</option>';
+                }
+                for (i = 0; i < Ediost.length; i++) {
+                    code += '<tr><td hostId=' + vm.cell[Ediost[i][0]].Id + ' mark='+Ediost[i][0]+'><input type="checkbox"></td><td>'
+                        + Ediost[i][1] + '</td><td><input type="number" class="inputNumber" value="1" min="1"></td>';
+                    if (vm.cell[Ediost[i][0]].HostnameRelatedCommands.length > 0) {
+                        code += '<td><span class="glyphicon glyphicon-edit" onclick="app.selNotification(this,' + Ediost[i][0] + ')"></span></td>';
+                    } else {
+                        code += '<td></td>';
+                    }
+                    code += '<td><select class="form-control">' + code2 + '</select></td>' +
+                        '<td><span class="glyphicon glyphicon-edit" onclick="app.selContactgroup(event)"></span></td></tr>';
+                }
+            $(".C tbody").append(code);
+        },
+        // 设备管理——穿梭框向左移除设备
+        rDevice() {
+            var bkb = $(".C tbody input[type='checkbox']"), i = 0,j,mkb=$(".A label input"),b=[];
+            for (; i < bkb.length; i++) {
+                if (bkb[i].checked){
+                    b.push($(bkb[i]).parent().attr("mark"));
+                    $(bkb[i]).parents("tr").remove();
+                }
+            }
+            for(j=0;j<b.length;j++){
+                for(i=0;i<mkb.length;i++){
+                    if($(mkb[i]).attr("sortid")==b[j]){
+                        $(mkb[i]).removeAttr("disabled").parents("label").removeAttr("disabled");
+                    }
+                }
+            }
+        },
+        // 设备管理——选取联系人组
+        selContactgroup(mc) {
+            var vm = this, i = 0, j, txt = Common.zGetNode(mc, "TD").textContent.split("，") || "", inHTML = "<ul class='Z1'>";
+            for (; i < vm.contactsList.length; i++) {
+                inHTML += '<li><label><input type="checkbox" ctsid="' + vm.contactsList[i].Id + '" ';
+                for (j = 0; j < txt.length; j++) {
+                    inHTML += txt[j] == vm.contactsList[i].Name ? 'checked' : "";
+                }
+                inHTML += '>' + vm.contactsList[i].Name + '</label></li>';
+            }
+            inHTML += '</ul>';
+            layui.layer.open({
+                type: 1,
+                title: vm.$t('Table.Box.Add.contactGroup.title'),
+                area: ['545px', '250px'],
+                shadeClose: true, 
+                content: inHTML,
+                btn:[vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
+                skin: 'set-Table',
+
+                yes: function(index, layer) {
+                    var bkb = $(".Z1 input[type='checkbox']"), i = 0, code2 = [], code3 = '', code = [];
+                    for (; i < bkb.length; i++) {
+                        if (bkb[i].checked) {
+                            code.push($(bkb[i]).attr("ctsid"));
+                            code2.push($(bkb[i]).parent().text());
+                        }
+                    }
+                    if (code2.length > 0) {
+                        for (i = 0; i < code2.length; i++) {
+                            code3 += '<span>' + code2[i] + '</span>';
+                            code3 += i != code2.length - 1 ? "，" : "";
+                        }
+                        code3 += '<span class="glyphicon glyphicon-edit" style="margin-left: 5px;"  onclick="app.selContactgroup(event)"></span>';
+                        $(Common.zGetNode(mc, "TD")).addClass("xg").attr("code", code);
+                        $(Common.zGetNode(mc, "TD")).html(code3);
+                        layui.layer.close(index);
+                    } else {
+                        alert(vm.$t('Table.Box.Add.contactGroup.tips[0]')+"!");
+                    }
+                    layui.layer.close(index);
+                }
+            });
+        },
+        // 设备管理——批量管理 应用对象和参考对象点击执行函数
+        changeBtnClick(index) {
+            let tem = this.batchTemp.temp.splice(index, 1);
+            this.batchTemp.temp.unshift(tem[0]);
+        },
+        // 设备管理——批量管理弹框功能
+        batch(){
+            let vm = this, content;
+            let data = this.currentObj;
+            if(data.length<2){
+                this.errorMsg(vm.$t('Tips[7]'));
+                return;
+            }
+            if(this.sort=="monitoring"){
+                this.batchTemp.nec = this.batchTemp.nec2;
+                content = $('#batchBox2')
+            }else{
+                content = $('#batchBox')
+            }
+            layui.layer.open({
+                type: 1,
+                title: vm.$t('Table.Box.Batch.title'),
+                content: content,
+                area: ['546px', '300px'],
+                btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
+                skin: 'set-Table',
+                yes: function(index, layero) {
+                    let data = layero.find('input').serializeArray();
+                    let refer = null
+                    // 找到参考对象
+                    $.each(vm.currentObj, (i, e)=>{
+                        if((e.Name || e.Description) == vm.batchTemp.temp[0]){
+                            refer = e;
+                        }
+                    });
+                    $.each(vm.Tdata, (i, e)=>{
+                        if((e.Name || e.Description) == vm.batchTemp.temp[0]){
+                            return true;
+                        }else{
+                            $.each(vm.currentObj, (k, g)=>{
+                                if((e.Name || e.Description)==(g.Name || g.Description)){
+                                    if(data.length>0){   // 查找需要设置的值
+                                        $.each(data, (j, f)=>{
+                                            e[f.name] = refer[f.name]
+                                        });
+                                        e.edit = 'update'
+                                        vm.updateGroup.push(e);
+                                    }
+                                }
+                            })
+                        }
+                    });
+                    
+                    layui.table.reload(vm.sort,{
+                        data: vm.Tdata
+                    });
+                    if($('.deleteButton').find('span').length==0){
+                        $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                    };
+                    vm.batchTemp.temp = [];
+                    layer.close(index)
+                },
+                btn2: function(index, layero){
+                    vm.batchTemp.temp = [];
+                    layer.close(index)
+                },
+                cancel: function(index, layero){
+                    vm.batchTemp.temp = [];
+                    layer.close(index)
+                    return false; 
+                },
+            });
+            $.each(this.currentObj, (i, e)=>{
+                if(vm.sort=="devices"){
+                    vm.batchTemp.temp.push(e.Name)
+                }else{
+                    vm.batchTemp.temp.push(e.Description);
+                }
+            })
+        },
+        // 人员管理——联系人 更多参数设置
+        contactsMore(d){
+            let vm = this, dom, code0='', code1='', i,j, k,l;
+            this.currentContactMore = d;
+            for (i = 0; i < vm.hostBlist.length; i++) {
+                code0 += '<li><input lay-skin="primary" type="checkbox" value="true" class="hostid" data-hostid="' + vm.hostBlist[i].Id + '" ';
+                    for (j = 0; j < d.HostNotificationCommands.length; j++) {
+                        if (d.HostNotificationCommands[j].Id == vm.hostBlist[i].Id)
+                            code0 += 'checked';
+                    }
+                // code0 += ' name="'+vm.hostBlist[i].Id+'" title='+vm.hostBlist[i].Name+'></li>';
+                code0 += ' name="HostNotificationCommands" title='+vm.hostBlist[i].Name+'></li>';
+            }
+            //监控项
+            for (k = 0; k < vm.ServiceBlist.length; k++) {
+                code1 += '<li><input lay-skin="primary" type="checkbox" value="true" class="serviceid" data-serviceid="' + vm.ServiceBlist[k].Id + '" ';
+                    for (l = 0; l < d.ServiceNotificationCommands.length; l++) {
+                        if (d.ServiceNotificationCommands[l].Id == vm.ServiceBlist[k].Id)
+                            code1 += 'checked';
+                    }
+                // code1 += ' name="'+vm.ServiceBlist[k].Id+'" title='+ vm.ServiceBlist[k].Name +'></li>';
+                code1 += ' name="ServiceNotificationCommands" title='+ vm.ServiceBlist[k].Name +'></li>';
+            }
+            this.code0 = code0;
+            this.code1 = code1;
+            layer.open({
+                type: 1,
+                title: vm.$t('Table.Box.Cell.contacts.more.title'),
+                area: ['550px'],
+                shadeClose: true,
+                content: $('#contactsMore'),
+                btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
+                skin: 'set-Table',
+                success: function(layero, index){
+                    layui.form.render();
+                    vm.$nextTick(()=>{
+                        layui.form.render();
+                        layui.form.on('checkbox(selectAll)', function(data){
+                            if(data.elem.checked){
+                                let sonList = $(data.elem).nextAll().find('input:checkbox');
+                                $.each(sonList, (i,e)=>{
+                                    $(e)[0].checked=true;
+                                })
+                            }else{
+                                let sonList = $(data.elem).nextAll().find('input:checkbox');
+                                $.each(sonList, (i,e)=>{
+                                    $(e)[0].checked=false;
+                                })
+                            }
+                            layui.form.render();
+                        })
+                        layui.form.on('submit(contactsMore_submit)', function(data){
+                            let {field} = data;
+                            let mapBooleab=[];
+                            layero.find('input[value="true"]').each((i,el)=> $(el).attr('value') === 'true' && mapBooleab.push($(el).attr('name')))
+                            mapBooleab.forEach(key=>!field.hasOwnProperty(key)&&(field[key]=false))
+                            
+                            for(let key in field){
+                               if(key=="ServiceNotificationCommands"){
+                                    d[key] = [];
+                                    layero.find('.serviceid').each((i, el)=>{
+                                        if($(el)[0].checked){
+                                            let id = $(el).data('serviceid');
+                                            d.ServiceNotificationCommands.push({Id: id})
+                                        }
+                                    });
+                               }else if(key=='HostNotificationCommands'){
+                                    d[key] = [];
+                                    layero.find('.hostid').each((i, el)=>{
+                                        if($(el)[0].checked){
+                                            let id = $(el).data('hostid');
+                                            d.HostNotificationCommands.push({Id: id})
+                                        }
+                                    });
+                               }else{
+                                   d[key] = field[key];
+                               }
+                            };
+                            if(d.HostNotificationCommands.length<=0 || d.ServiceNotificationCommands.length<=0){
+                                //请保证每个参数都至少选择一项
+                                vm.errorMsg("请保证每个参数都至少选择一项");
+                                return false;
+                            }
+                            d.edit=='add'?'':d.edit='update';
+                           
+                            if(vm.updateGroup.length>0){
+                                let index2=null;
+                                $.each(vm.updateGroup, (i,e)=>{
+                                    if(e.Id===d.Id){
+                                        index2=i
+                                    }
+                                })
+                                if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                                vm.updateGroup.push(d);
+                            }else{
+                                vm.updateGroup.push(d);
+                            }
+                            layer.close(index);
+                            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+                        });
+                    });
+                },
+                yes: function(index, layero){
+                    $('[lay-filter="contactsMore_submit"]').click();
+                },
+                btn2: function(index, layero) {
+                    layer.close(index);
+                }
+            });  
+        },
+        // 获取命令
+        getCommand(){
+            let vm = this;
+            this.$http.get('/api/v1/command/host/notification')
+            .then((res)=>{
+                vm.hostBlist = res.body.data;
+            });
+            this.$http.get('/api/v1/command/service/notification')
+            .then((res)=>{
+                vm.ServiceBlist = res.body.data;
+            });
+        },
+        // 时间段设置弹框
+        setPeriod(obj) {
+            let vm = this;
+            let cell = obj.event.split('-')[1];
+            let initList=null;
+            if(obj.data[cell]!=''&&obj.data[cell]!=undefined){
+                initList = obj.data[cell].split(',');
+                let t1, t2, t3, t4, htm;
+                $.each(initList, (i, e)=>{
+                    if(e){
+                        t1 = e.split('-')[0].split(':')[0];
+                        t2 = e.split('-')[0].split(':')[1];
+                        t3 = e.split('-')[1].split(':')[0];
+                        t4 = e.split('-')[1].split(':')[1];
+                        htm = `
+                        <div class="layui-form-item">
+                            <div class="layui-inline" style="display: flex; justify-content: space-around; align-items: center">
+                                <input type="number" min="0" max="24" value="${t1}">
+                                <input type="number" min="0" max="60" value="${t2}">
+                                ${vm.$t('Table.Box.Cell.Period.other')}
+                                <input type="number" min="0" max="24" value="${t3}">
+                                <input type="number" min="0" max="60" value="${t4}">
+                                <span class="deletePeriodRange"> <i class="layui-icon layui-icon-close-fill" style="color: red; font-size: 28px;" ></i> </span>
+                            </div>
+                        </div>
+                        `
+                        $('.setPeriod_content').eq(0).append(htm)
+                    }
+                });
+            }
+            function addTemp(){
+                let temp = `
+                <div class="layui-form-item">
+                    <div class="layui-inline" style="display: flex; justify-content: space-around; align-items: center">
+                        <input type="number" min="0" max="24" value="00">
+                        <input type="number" min="0" max="60" value="00">
+                        ${vm.$t('Table.Box.Cell.Period.other')}
+                        <input type="number" min="0" max="24" value="24">
+                        <input type="number" min="0" max="60" value="00">
+                        <span class="deletePeriodRange"><i class="layui-icon layui-icon-close-fill" style="color: red; font-size: 28px;" ></i> </span>
+                    </div>
+                </div>
+                `
+                $('.setPeriod_content').eq(0).append(temp)
+            }
+            layer.open({
+                type: 1,
+                title: vm.$t('Table.Box.Cell.Period.title'),
+                area: ['550px', '260px'],
+                shadeClose: true,
+                content: $('#setPeriod'),
+                skin: 'setPeriod set-Table',
+                btn:[vm.$t('Table.Box.Cell.Period.btn[0]'), vm.$t('Table.Box.Cell.Period.btn[1]'), vm.$t('Table.Box.Cell.Period.btn[2]')],
+                success: function(layero, index){
+                    $('.deletePeriodRange').click(function(){
+                        $(this).parent().remove()
+                    });
+                },
+                btn1: function(index, layero){
+                    let list = $(layero).find('.layui-inline');
+                    if(list.length>0){
+                        let h1,m1,h2,m2,timeperiod='';
+                       
+                        $.each($(list), (i, e)=>{
+                            h1 = $(e).find('input').eq(0).val();
+                            m1 = $(e).find('input').eq(1).val();
+                            h2 = $(e).find('input').eq(2).val();
+                            m2 = $(e).find('input').eq(3).val();
+                            if(timeperiod==''){
+                                timeperiod += h1+':'+m1+'-'+h2+':'+m2
+                            }else{
+                                timeperiod += ','+h1+':'+m1+'-'+h2+':'+m2;
+                            }
+                        });
+                        obj.data[cell] = timeperiod;
+                    }else{
+                        obj.data[cell] = "";
+                    }
+                    let index1, index2;
+                    if(obj.data.Id){
+                        vm.$http.post('/config/rest/Timeperiods/'+obj.data.Id, obj.data)
+                        .then((res)=>{
+                            vm.getTableData();
+                            layer.close(index);
+                        });
+                    }else{
+                        vm.updateGroup.forEach((e, i)=>{
+                            if(obj.data.id==e.id){
+                                index = i
+                            }
+                        });
+                        if(index>=0){vm.updateGroup.splice(index1, 1 )};
+                        vm.updateGroup.push(obj.data);
+                    };
+                    // 更新一下表格
+                    $.each(vm.Tdata, (j, k)=>{
+                        if(obj.data.hasOwnProperty('Id')){
+                            if(obj.data.Id==k.Id){
+                                index2 = j;
+                            }
+                        }else{
+                            if(obj.data.id==k.id){
+                                index2 = j;
+                            }
+                        }
+                    });
+                    if(index2>=0){
+                        vm.Tdata.splice(index2, 1);
+                    }
+                    vm.Tdata.push(obj.data);
+                    layui.table.reload(vm.sort, {
+                        data: vm.Tdata
+                    });
+
+                    layer.closeAll();
+                },
+                btn2: function(index, layero) {
+                    addTemp();
+                    return false;
+                },
+                btn3: function(index, layero) {
+                    layer.close(index);
+                },
+                end: function(){
+                    $('.setPeriod_content').eq(0).empty()
+                }
+            });
+        },
+        // 定时任务
+        renderTimedTask(){
+            let vm = this;
+            this.getTableData();
+            this.getControlActions();
+        },
+        getControlActions() {
+            let vm = this;
+            this.$http.get('/config/rest/ControlActions')
+            .then((res)=>{
+                vm.timedTaskOrder = res.body
+            });
+        },
+        timedTaskLogBox(){
+            if(this.currentObj.length<=0){
+                this.errorMsg(vm.$t('Table.Box.log.timedTask.tips[0]'))
+                return false
+            }
+            let opts = {
+                elem: '#timedTaskLog',
+                page: {
+                    layout: ['first', 'prev', 'page', 'next', 'last'],
+                    first: vm.$t('laypage[0]'),
+                    last: vm.$t('laypage[1]'),
+                    prev: vm.$t('laypage[2]'),
+                    next: vm.$t('laypage[3]'),
+                    theme: '#36a1f2',
+                },
+                cols: [[ //表头
+                    {field: 'Time', title: vm.$t('Table.Box.log.timedTask.table_th[0]'), width: '30%', align: 'center'},
+                    {field: 'readable_type', title: vm.$t('Table.Box.log.timedTask.table_th[1]'), width: '20%', align: 'center'},
+                    {field: 'Text', title: vm.$t('Table.Box.log.timedTask.table_th[2]'), align: 'center'}
+                ]],
+            }
+            this.$http.get('/config/rest/ControlTaskLogEntries?controlTaskId='+this.currentObj[0].Id)
+            .then((res)=>{
+                opts.data = res.body;
+                layui.layer.open({
+                    type: 1,
+                    title: vm.$t('Table.Box.log.timedTask.title'),
+                    area: ['800px', '620px'],
+                    shadeClose: true,
+                    content: $('#timedTaskLogBox'),
+                    btn: [vm.$t('Table.Box.log.timedTask.btn[0]')],
+                    skin: 'set-Table',
+                    success: function(){
+                        layui.table.render(opts);
+                    },
+                    yes: function(index, layero){
+                        layui.layer.close(index)
+                    }
+                });
+            })
+        },
+        // 联动参数
+        selectOrder(type) {
+            let vm = this;
+            let opts = {
+                type: 1,
+                title: '命令>>',
+                area: '550px',
+                shadeClose: true,
+                btn: ['确定', '取消'],
+                skin: 'set-Table',
+                content: `
+                    <table class="layui-hide" id="selectOrderTable" lay-data="{id: 'selectOrderTable'}"></table>
+                `,
+                success: function(){
+                    // 首先要查看当前新增窗口有没有预设的命令值,还要判断命令类型
+                    if(vm.linkageAdd.Actions.length>0){
+                        let cla = vm.linkageAdd.Actions.filter(item=>{return item.Type==type});
+                        for(let i=0; i<vm.timedTaskOrder.length; i++){
+                            let index = cla.findIndex(item=>{ 
+                                return (item.ActionId==vm.timedTaskOrder[i].Id)
+                            })
+                            if(index>=0){vm.timedTaskOrder[i].LAY_CHECKED = true}
+                        }
+                    }
+                    layui.table.render({
+                        elem: '#selectOrderTable',
+                        data: vm.timedTaskOrder,
+                        cols: [[
+                            {type:'checkbox'},
+                            {field:'Name', title: '名称', sort: true},
+                            {field:'host', title: '设备', sort: true},
+                            {field:'RawCommand', title: '命令', sort: true,
+                                templet: function(d){
+                                    let list = d.RawCommand.split(" ");
+                                    return list[list.length-2]+" "+list[list.length-1];
+                                }
+                            }
+                        ]]
+                    });
+                },
+                yes: function(index, layero){
+                    let checkStatus = layui.table.checkStatus('selectOrderTable');
+                    if(checkStatus.data.length>0){
+                        let temp = vm.linkageAdd.Actions.filter(item=>{return item.Type!=type; });
+                        $.each(checkStatus.data, (i, e)=>{
+                            temp.push({Type: type, ActionId: e.Id});
+                        })
+                        vm.linkageAdd.Actions = temp;
+                    }
+                    layui.layer.close(index);
+                },
+                end() {
+                    $.each(vm.timedTaskOrder, (j, f)=>{
+                        f.LAY_CHECKED = false
+                    })
+                }
+            }
+            layui.layer.open(opts);
+        }
+        /*************************************************************************/
+    },
+}
+
+</script>
+<style lang="stylus">
+body
+    table .glyphicon-edit
+        color #007bbb;
+        cursor pointer;
+        font-size 18px;
+        margin-left 5px;
+    
+    .errorMsg 
+        box-shadow none
+        border-radius 10px
+        background-color #e74c3c
+        img
+            width 35px
+            margin-right 20px
+        .layui-layer-title
+            background #e74c3c
+        .layui-layer-content
+            background-color #e74c3c
+            border none
+            border-radius 10px
+            color #fff
+            padding 10px
+            width 250px
+        .layui-layer-setwin
+            // display none
+            right: 20px;
+            top: 20px;
+    .successMsg
+        box-shadow none
+        border-radius 10px
+        background-color #27ae60
+        img
+            width 35px
+            margin-right 20px
+        .layui-layer-title
+            background none
+        .layui-layer-content
+            background-color #27ae60
+            border none
+            border-radius 5px
+            color #fff
+            width 250px
+        .layui-layer-setwin
+            display none
+
+        .setTable
+            .layui-table-body 
+                overflow-y auto
+                overflow-x hidden
+                .layui-table-cell
+                    .layui-input-block
+                        margin-left 0
+                .layui-form-select dl
+                    position fixed
+                    min-width 120px
+                    left auto
+                    top auto
+    
+// div[class$="-Hostgroups"]
+//     overflow: unset;
+.addDeviceBox
+    display flex !important
+    overflow hidden
+    height auto
+.addDeviceBox .A, .addDeviceBox .C
+    flex-shrink 0
+    border 1px solid #c8c8ca
+    border-radius 4px
+    padding 14px
+    height 300px
+    overflow hidden 
+.addDeviceBox .A
+    width 250px
+    overflow-y auto 
+    label
+        font-weight normal
+        margin 0
+        width 100%
+    label input
+        margin-right 4px 
+    ul ul
+        margin-left 30px
+        display none
+    li div
+        display flex
+        align-items center
+        cursor pointer
+        span
+            display inline-block
+            width 20px
+            height 20px
+            border 1px solid #c1c1bf
+            border-radius 2px
+            margin 0 10px 0 0
+            background #fff url(/public/images/setup/icon_host_add.png) no-repeat center
+    ul>.active>div>span
+        background-image url(/public/images/setup/icon_host_remove.png)
+.addDeviceBox .B
+    display float left
+    flex-direction column
+    justify-content: center
+    button 
+        width: 75px;
+        height: 30px;
+        color: #fff;
+        margin: 6px;
+        font-size: 16px;
+        display: block;
+        border-radius: 4px;
+    button:nth-child(1)
+        border 1px solid #0e6bb1
+        background #2c90dc
+    button:nth-child(2)
+        border 1px solid #f5b031
+        background #fb9d2c
+.addDeviceBox .C
+    width 680px
+    overflow-y auto
+    th
+        background #54b5ff
+        color #fff
+    th, td
+        min-width 100px
+        max-width 120px
+        height 40px
+        text-align center
+        border 1px solid #ccc
+    td input
+        width 90%
+    .inputNumber
+        border 1px solid #ccc
+        border-radius 4px
+    .layui-icon
+            cursor pointer
+
+
+.set-Table
+    box-shadow 5px 5px 10px #bbb, -5px -5px 10px #bbb
+    .layui-layer-content, .layui-layer-btn 
+        background-color #e7f4fd
+    .layui-layer-title 
+        background no-repeat 16px center, linear-gradient(to bottom, #329ce5, #2e8bd3)
+        border 1px solid #bababa 
+        color #fff
+    .layui-btn+.layui-btn
+        margin-left 0
+        margin-right 10px
+        
+    .layui-layer-btn .layui-layer-btn0
+        color #fff
+        background-color #82d642
+    .layui-layer-btn a
+        color #fff
+        background-color #f86868
+        border #f86868
+
+    .layui-form-label
+        width 100px
+    .layui-form-item
+        width 90%
+        margin-bottom 5px
+    .layui-form-select dl
+        position fixed
+        left auto
+        top auto
+        min-width 120px
+    
+    #batchBox, #batchBox2
+        .layui-btn
+            width 100px
+            margin 5px
+            text-align center
+            padding-left 5px
+            padding-right 5px
+            overflow hidden
+            text-overflow ellipsis 
+            background-color #1E9FFF
+
+#table
+    .layui-table-body 
+        overflow-y auto
+        overflow-x hidden
+    .layui-table-cell
+    .layui-input-block
+        margin-left 0
+    .layui-form-select dl
+        position fixed
+        min-width 120px
+        left auto
+        top auto
+    .layui-form-label
+        width 100px
+    .layui-form-item
+        width 90%
+        margin-bottom 5px
+    .layui-table-view
+        margin 20px 0
+    .layui_page
+        text-align center
+    .layui-table-view
+        th
+            background #54b5ff
+            color #fff
+            padding: 0;
+            height: 43px;
+    .change
+        color green
+
+.batch
+    background-color #83c831
+.delete
+    background-color #fb9d2c
+.email, .modify
+    background-color #7dc02f
+.test
+    background-color #f26547
+.compared
+    background-color #f99c34
+.log
+    background-color #83c831
+.application
+    background-color: #f26547
+.batchEdit
+    background-color: #83c831
+.userRole
+    .layui-input-block
+        ul
+            padding-left: 20px;
+.setPeriod
+    background-color #e7f4fd
+    input
+        width 20%
+        height 40px;
+        text-align center
+    .layui-form-item
+        width 100% !important
+    .layui-layer-btn0
+        background-color #82d642 !important
+    .layui-layer-btn1
+        background-color #007bbb !important
+    .layui-layer-btn2
+        background-color #f86868 !important
+    .layui-layer-btn
+        display flex
+        justify-content space-around
+.layui-layer-tips
+    display none
+#timedTaskIds
+    .week
+        .layui-form-item
+            width 100%
+            .layui-input-block
+                margin 0 110px
+#timedTaskLogBox
+    padding 15px
+    .layui-table-page
+        text-align center
+    table
+        thead th
+            background-color #54b5ff
+            color #fff
+// .timedTaskLog
+//     .layui-layer-btn
+//         text-align center !important
+//         a
+//             display: block-inline
+//             height 30px
+//             line-height 30px
+//             padding 0 26px
+//             border-radius 4px
+//             font-weight 400
+//             font-size 16px
+.comparedTable
+    border 1px solid red
+    display flex
+    thead
+        float left
+        tr
+            display flex
+            flex-direction column
+            th
+                height 50px
+                line-height 50px
+                border 1px dashed #000
+                width 100px
+                padding 0 10px
+    tbody
+        tr
+            td
+                display inline-block
+                width 100px
+                height 50px
+                padding 0 10px
+                line-height 50px
+                border 1px solid green
+.orderTable
+    width 90%
+    margin 20px auto 0 auto
+    thead
+        th
+            background-color #54b5ff
+            color #fff
+            text-align center
+    tbody
+        td
+            text-align center
+#linkageBox
+    .layui-input-block
+        display flex
+        flex-direction column
+        justify-content center
+</style>
+
+

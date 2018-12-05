@@ -1,0 +1,43 @@
+/*设置标签页内部字体*/
+.el-tabs, .el-dialog__header, .el-dialog__footer{
+    font-size: 16px;
+}
+.el-tabs--card>.el-tabs__header .el-tabs__item.is-active{
+    border-top: 3px solid #5ac4f1;
+}
+.el-table th{
+    background-color: #36a1f2;
+    color: #fff;
+    text-align: center;
+}
+/*弹出框的样式设计*/
+.el-dialog{
+    border: 1px solid #eee;
+    background: rgba(255,255,255,0.3);
+    padding: 10px; 
+    border-radius: 5px;
+    font-size: 16px;
+}
+.el-dialog__header, .el-dialog__body, .el-dialog__footer{
+    background-color: #def0ff;
+    overflow: hidden;
+}
+.el-dialog__header{
+    border-bottom: 2px solid #000;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px
+}
+.el-dialog__footer{
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+/************************/
+.el-radio{
+    margin-left: 20px !important ;
+}
+.el-radio-button__inner{
+    padding: 4px 16px;
+}
+.el-message-box{
+    padding-bottom: 0;
+}

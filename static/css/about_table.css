@@ -1,0 +1,300 @@
+#dataSheets,
+#troubleShoot {
+  position: relative;
+}
+
+/************tab选项卡下面的*************/
+/**********输入框、选择框、按钮**********/
+.dataOperate .layui-tab .layui-form .layui-form-item {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0px;
+}
+
+.dataOperate .layui-tab .layui-form .layui-input {
+  text-indent: 0.1rem;
+  border-radius: 6px;
+  margin-right: 0.15rem;
+  float: left;
+  width: 2.2rem;
+}
+
+.dataOperate .layui-tab .layui-form .layui-form-select .layui-input {
+  width: 170px;
+}
+
+.dataOperate .layui-form-select .layui-edge {
+  right: 0.25rem;
+}
+
+.dataOperate .layui-tab .layui-form .layui-btn-normal {
+  align-self: center;
+  background: #37a1f0 url("/static/img/zoom1.png") no-repeat 54px center;
+  background-size: 18px;
+  padding-right: 35px;
+  border-radius: 0.06rem;
+  height: 35px;
+  line-height: 35px;
+}
+
+.dataOperate .layui-tab .layui-form .layui-form-item .outExcel {
+  height: 35px;
+  line-height: 35px;
+  padding-left: 35px;
+  background-size: auto 70%;
+  position: absolute;
+  right: 6%;
+}
+
+/***********************table表格***********************/
+.dataOperate .layui-form.layui-border-box.layui-table-view {
+  display: inline-block;
+  border: 0px;
+  margin: 0px;
+  min-height: 5rem;
+}
+
+.dataOperate .layui-tab-content table tr:hover {
+  background: #92d0ff;
+  color: #ffffff;
+}
+
+/* 让table表格里面的数据可以换行，不是以省略号的形式出现 */
+.dataOperate .layui-tab-content table .layui-table-cell {
+  height: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.dataOperate .layui-tab-content table .ico_alarm {
+  float: right;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dataOperate .layui-tab-content table .confirm_alarm,
+.dataOperate .layui-tab-content table .disable_alarm {
+  border: 2px solid transparent;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.dataOperate .layui-tab-content table .confirm_alarm {
+  background-image: url("/public/images/currency/i-true.png");
+}
+
+.dataOperate .layui-tab-content table .disable_alarm {
+  background-image: url("/public/images/currency/i-remove.png");
+}
+
+.dataOperate .layui-tab-content .layui-table-box {
+  border: 1px solid #e6e6e6;
+}
+
+.dataOperate .layui-tab-content .layui-table-box th {
+  text-align: center;
+  background: #54b5ff;
+  height: 0.24rem;
+  line-height: 0.24rem;
+  color: #ffffff;
+  border-bottom: #e6e6e6 2px solid;
+}
+
+/*************************右侧功能栏**************************/
+.slide_control {
+  display: flex;
+  width: 0px;
+}
+
+.slide_control ul {
+  position: absolute;
+  right: 0.2rem;
+  align-self: center;
+}
+
+.slide_control ul li {
+  display: block;
+  cursor: pointer;
+  list-style: none;
+  margin-bottom: 5px;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #36a1f2;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 93% 93%;
+}
+
+.slide_control ul li:last-child {
+  margin-bottom: 0px;
+}
+
+/************************弹出框*****************************/
+#index #logout_dialogForm,
+#widget #wid_dialogForm,
+#dataSheets #data_dialogForm,
+#troubleShoot #trouble_dialogForm {
+  width: 100%;
+  height: 100%;
+}
+
+#index .layui-layer,
+#widget .layui-layer,
+#dataSheets .layui-layer,
+#troubleShoot .layui-layer {
+  border: 1px solid #bababa;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 0.05rem;
+}
+
+#index .layui-layer .layui-layer-content,
+#widget .layui-layer .layui-layer-content,
+#dataSheets .layui-layer .layui-layer-content,
+#troubleShoot .layui-layer .layui-layer-content {
+  overflow: hidden;
+}
+
+#index #logout_dialogForm .dialogFormBox,
+#widget #wid_dialogForm .dialogFormBox,
+#dataSheets #data_dialogForm .dialogFormBox,
+#troubleShoot #trouble_dialogForm .dialogFormBox {
+  font-size: 0.16rem;
+  display: inline-block;
+  width: 6.1rem;
+  border-radius: 0.02rem;
+  margin: 0.15rem 0.1rem 0.15rem 0.1rem;
+  position: relative;
+  background: #def0ff;
+  color: #282e34;
+}
+
+#index #logout_dialogForm .dialogFormBox .dialogHead,
+#widget #wid_dialogForm .dialogFormBox .dialogHead,
+#dataSheets #data_dialogForm .dialogFormBox .dialogHead,
+#troubleShoot #trouble_dialogForm .dialogFormBox .dialogHead {
+  width: 5.5rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+#index #logout_dialogForm .dialogFormBox .dialogHead span,
+#widget #wid_dialogForm .dialogFormBox .dialogHead span,
+#dataSheets #data_dialogForm .dialogFormBox .dialogHead span,
+#troubleShoot #trouble_dialogForm .dialogFormBox .dialogHead span {
+  font-size: 0.22rem;
+  margin-top: 0.33rem;
+  padding-bottom: 0.12rem;
+  border-bottom: 2px solid #515151;
+  display: block;
+}
+
+#index .dialogFormBox .dialogHead .sheetsClose,
+#widget .dialogFormBox .dialogHead .sheetsClose,
+#dataSheets .dialogFormBox .dialogHead .sheetsClose,
+#troubleShoot .dialogFormBox .dialogHead .sheetsClose {
+  background: url("/public/images/login/close.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 0rem;
+  right: 0rem;
+  width: 0.15rem;
+  height: 0.15rem;
+  cursor: pointer;
+}
+
+.dialogFormBox .layui-form {
+  overflow: auto;
+  margin: 0 auto;
+  width: 5.5rem;
+  max-height: 4.2rem;
+}
+
+.dialogFormBox .layui-form .layui-form-item {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.dialogFormBox .layui-form span {
+  width: 1.1rem;
+}
+
+.dialogFormBox .layui-form .dialog_object {
+  padding-top: 18px;
+}
+
+.dialogFormBox .layui-form .prompt {
+  width: 3.87rem;
+  margin-left: -0.17rem;
+}
+
+.dialogFormBox .layui-form table {
+  text-align: center;
+  background: transparent;
+}
+
+.dialogFormBox .layui-form table th {
+  text-align: center;
+}
+
+.dialogFormBox .layui-form table tr:nth-child(1) {
+  background: #54b5ff;
+  height: 0.24rem;
+  line-height: 0.24rem;
+  color: #ffffff;
+}
+
+.dialogFormBox .layui-form table tr:hover {
+  background: #92d0ff;
+  color: #ffffff;
+}
+
+.dialogFormBox .layui-form textarea {
+  /* width: 3.9rem; */
+  border: #a9a9a9 1px solid;
+}
+
+.dialogFormBox .layui-form-checkbox span {
+  font-size: 0.16rem;
+  color: #282e34;
+}
+
+.dialogFormBox #dateComponents {
+  width: 2.85rem;
+}
+
+.dialogFormBox .layui-form-item .layui-btn {
+  background: #eeeeee;
+}
+
+.dialogFormBox .dialogFoot {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.dialogFormBox .dialogFoot .cancel,
+.dialogFormBox .dialogFoot .confirm {
+  color: #fff;
+  height: 0.3rem;
+  line-height: 0.3rem;
+  width: 0.85rem;
+  border-radius: 0.04rem;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.dialogFormBox .dialogFoot .cancel {
+  background-color: #f86868;
+}
+
+.dialogFormBox .dialogFoot .confirm {
+  background-color: #82d642;
+}
