@@ -12,7 +12,7 @@
                     <div class="layui-tab-item"></div>
 
                     <div class="layui-tab-item  layui-show">
-                        <vtable sort='hostGroup' ref="hostTab" v-on:extendHosts="showContent"></vtable>
+                        <vtable sort='hostGroup' ref="hostTab"></vtable>
                     </div>
 
                     <div class="layui-tab-item">
@@ -61,32 +61,8 @@ export default {
         },
         getDevices() {
             this.$refs.devicesTab.renderDevice();
-        },
-        showContent(data, that) {
-            console.log("传过来的对象", $(that).width());
-            if(this.curr_tab==1){
-                $('.layui-layer-tips').fadeIn(0.3*1000);
-                $('.layui-table-tips').css('width', $(that).width());
-                $('.layui-table-tips-c').css('padding', '0px')
-                // console.log("弹出框", $('.layui-table-tips-main'));
-                let content = $('.layui-table-tips-main');
-                // console.log("输出内容:", content.text().split(','));
-                let hostsList = content.text().split(',');
-                let template = '';
-                for(let i=0;i<hostsList.length; i++){
-                    template += `<li style="width: 20%; text-align: center;margin: 5px">${hostsList[i]}</li>`
-                }
-                
-                template = `<ul style="width: 100%; display:flex; flex-wrap: wrap;cursor:pointer">${template}</ul>`;
-                // console.log(template);
-                this.$nextTick(()=>{
-                    content.empty();
-                    $('.layui-table-tips-main').html(template);
-                })
-            }
         }
     }
-    
 };
 
 </script>

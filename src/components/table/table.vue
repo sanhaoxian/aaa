@@ -1941,7 +1941,7 @@ export default {
                         openLayer(temp, obj);
                     })
                 }else if(obj.event == 'extendHosts'){
-                    vm.$emit('extendHosts', 'hello,world!', this)
+                    // vm.$emit('extendHosts', 'hello,world!', this)
                 }
                 /********************************** */
                 // console.log("双击事件",this, obj);
@@ -3134,6 +3134,12 @@ body
             height: 43px;
     .change
         color green
+.layui-form-checked[lay-skin=primary] i
+    border-color #54b5ff
+    background-color #54b5ff
+.layui-form-radioed>i
+    color: #54b5ff;
+
 
 .batch
     background-color #83c831
@@ -3173,6 +3179,8 @@ body
         display flex
         justify-content space-around
 .layui-layer-tips
+    display none
+.layui-table-grid-down
     display none
 #timedTaskIds
     .week
