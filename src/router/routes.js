@@ -10,11 +10,11 @@ import mApplication from '@/components/set/mApplication'
 import mMore from '@/components/set/mMore'
 
 const routes = [
-    // {
-    //     path:'/',
-    //     name:'login',
-    //     component: Login,
-    // },
+    {
+        path:'/',
+        name:'login',
+        component: Login,
+    },
     {
         path: '/',
         name: 'set',

@@ -1603,6 +1603,7 @@ export default {
                                 let mapBooleab=[];
                                 layero.find('input[value="true"]').each((i,el)=> $(el).attr('value') === 'true' && mapBooleab.push($(el).attr('name')))
                                 mapBooleab.forEach(key=>!field.hasOwnProperty(key)&&(field[key]=false))
+                                console.log("提交的数据",data);
                                 // 通过区分函数，实现不同的弹框功能
                                 vm.distinguish(obj, field);
                                 layui.table.reload(vm.sort, {
@@ -1632,6 +1633,40 @@ export default {
                 }else if(obj.event == 'checkOrder'){
                     let res = vm.config[vm.sort].editCheckOrder(obj.data);
                     openLayer(res, obj);
+                    checkOrder_add();
+                    // 对新增按钮的监听
+                    function checkOrder_add(){
+                        $(".layer_checkOrder_addBtn").unbind();
+                        $(".layer_checkOrder_addBtn").bind('click', ()=>{
+                            // console.log("点击函数");
+                            let index = $(".layer_checkOrder_block").length;
+                            let template = '';
+                           
+                            template = `
+                                <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
+                                    <p>${index+1}级报警</p>
+                                    <div style="margin: 5px">
+                                        <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters${index+1}' lay-skin='primary' value='' title='' />
+                                    </div>
+                                </div>
+                            `
+                            
+                            $(".layer_checkOrder_content").append(template);
+                            if($(".layer_checkOrder_block").length>=2){
+                                $(".layer_checkOrder_addBtn").addClass("layui-btn-disabled");
+                                $(".layer_checkOrder_addBtn").unbind();
+                            }
+                        });
+                    }
+
+                    // 对删除按钮的监听
+                    $(".layer_checkOrder_deleteBtn").bind('click', ()=>{
+                        $(".layer_checkOrder_block").eq($(".layer_checkOrder_block").length-1).remove();
+                        if($(".layer_checkOrder_block").length<=2 && $(".layer_checkOrder_block").length>=0){
+                            $(".layer_checkOrder_addBtn").removeClass("layui-btn-disabled");
+                            checkOrder_add();
+                        }
+                    });
                 }else if(obj.event == 'serverMore'){
                     let res = vm.config[vm.sort].editMore(obj.data, vm.timeSlot, vm.timeBase);
                     openLayer(res, obj);
@@ -2072,18 +2107,48 @@ export default {
                     vm.updateGroup.push(obj.data);
                 }
             }else if(obj.event == 'checkOrder'){
-                let order = [], val="";
-                for(let key in data){
-                    order.push(data[key]);
+                console.log("数据", data);
+                let order = [];
+                
+                // for(let key in data){
+                //     order.push(data[key]);
+                // }
+                
+                // $.each(vm.Tdata, (i,e)=>{
+                //     if(e.Id==obj.data.Id){
+                //         e.edit = 'update';
+                //         e.CheckCommandParameters = [];
+                //         e.CheckCommandParameters.push(order.join(','));
+                //         vm.updateGroup.push(e);
+                //     }
+                // })
+
+                /******** */
+                if(data.hasOwnProperty('min')){
+                    order.push(data['min']+','+data['max'])
+                }
+                // if(data.hasOwnProperty('min2')){
+                //     order.push(data['min']+','+data['max'])
+                // }
+                if(data.hasOwnProperty('CheckCommandParameters1')){
+                    let old = data['CheckCommandParameters1']
+                    order.push(old.replace(/，/, ','))
+                }
+                if(data.hasOwnProperty('CheckCommandParameters2')){
+                    order.push(data['CheckCommandParameters2'])
                 }
                 $.each(vm.Tdata, (i,e)=>{
                     if(e.Id==obj.data.Id){
                         e.edit = 'update';
                         e.CheckCommandParameters = [];
-                        e.CheckCommandParameters.push(order.join(','));
+                        // e.CheckCommandParameters.push(order.join(','));
+                        e.CheckCommandParameters = order;
                         vm.updateGroup.push(e);
                     }
                 })
+                console.log("当前",order);
+                /********** */
+
             }else if(obj.event == 'serverMore'){
                 // $.each(data, (j, f)=>{
                 //     if(f.name=="NormalCheckInterval"){

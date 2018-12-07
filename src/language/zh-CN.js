@@ -662,7 +662,7 @@ const cn = {
         }
     },
     mDevice: {
-        tabTitle:["设备", "机房组", "设备", "监控项"],
+        tabTitle:["设置", "机房组", "设备", "监控项"],
     },
     mPersonnel: {
         tabTitle:["设置", "登录用户", "联系人组", "联系人"]
