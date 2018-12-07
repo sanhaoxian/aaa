@@ -569,7 +569,7 @@ const cn = {
                     editContactGroups_title: "选择联系人组",
                     editCheckOrder: {
                         title: "检查命令",
-                        label: ["一级报警", "二级报警"],
+                        label: ["1级报警", "级报警"],
                         label2: ["最小值", "最大值"],
                         tips: ["无可修改的参数！"]
                     },
@@ -830,7 +830,7 @@ const cn = {
             btn: ["确认", "取消"]
         }
     },
-    Prompt_btn: ["确定", "取消"],
+    Prompt_btn: ["确定", "取消", "新增"],
     laypage: ["首页", "尾页", "上一页", "下一页"],
     Tips: [
         "删除完成！",

@@ -829,7 +829,7 @@ const en = {
             btn: ["Yes", "No"]
         }
     },
-    Prompt_btn: ["Yes", "No"],
+    Prompt_btn: ["Yes", "No", "Add"],
     laypage: ["First", "Last", "Previous", "Next"],
     Tips: [
         "Delete done!",

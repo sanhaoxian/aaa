@@ -645,35 +645,33 @@ export default  {
                 let data = d.CheckCommandParameters[0].split(',');
                 if(data.length==2){
                     res += `
-                        <div style="border-bottom:1px dashed #ccc; padding-bottom: 5px">
-                            <a class="layui-btn layui-btn-normal layer_checkOrder_addBtn" style="height: 24px;line-height: 24px;">新增</a>
-                            <a class="layui-btn layui-btn-warm delete layer_checkOrder_deleteBtn" style="height: 24px;line-height: 24px;">删除</a>
-                        </div>
-                        <div class="layer_checkOrder_content" style="display: flex">
+                        <div class="layer_checkOrder_content" style="display: flex; flex-direction: column;">
                             <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
                                 <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[0]')}</p>
-                                <div style="margin: 5px">
-                                    <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
-                                    <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
-                                </div>
-                                <div style="margin: 5px">
-                                    <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
-                                    <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
+                                <div style="display: flex; ">
+                                    <div style="margin: 5px">
+                                        <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
+                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
+                                    </div>
+                                    <div style="margin: 5px">
+                                        <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
+                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
+                                    </div>
+                                    <i class="layui-icon layui-icon-close-fill layer_checkOrder_deleteBtn" style="cursor: pointer; color: red; font-size: 28px;"></i>
                                 </div>
                             </div>
                         </div>
                     `
                 }else{
                     res += `
-                        <div style="border-bottom:1px dashed #ccc; padding-bottom: 5px">
-                            <a class="layui-btn layui-btn-normal layer_checkOrder_addBtn" style="height: 24px;line-height: 24px;">新增</a>
-                            <a class="layui-btn layui-btn-warm delete layer_checkOrder_deleteBtn" style="height: 24px;line-height: 24px;">删除</a>
-                        </div>
-                        <div class="layer_checkOrder_content" style="display: flex">
+                        <div class="layer_checkOrder_content" style="display: flex;flex-direction: column;">
                             <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
                                 <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[0]')}</p>
-                                <div style="margin: 5px">
-                                    <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
+                                <div style="display: flex">
+                                    <div style="margin: 5px">
+                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
+                                    </div>
+                                    <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
                                 </div>
                             </div>
                         </div>
@@ -682,11 +680,7 @@ export default  {
             }else{
                 // <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.tips[0]')}</p>
                 res +=`
-                    <div style="border-bottom:1px dashed #ccc; padding-bottom: 5px">
-                        <a class="layui-btn layui-btn-normal layer_checkOrder_addBtn" style="height: 24px;line-height: 24px;">新增</a>
-                        <a class="layui-btn layui-btn-warm delete layer_checkOrder_deleteBtn" style="height: 24px;line-height: 24px;">删除</a>
-                    </div>
-                    <div class="layer_checkOrder_content" style="display: flex">
+                    <div class="layer_checkOrder_content" style="display: flex; flex-direction: column;">
                     </div>
                 `
             }
@@ -706,26 +700,26 @@ export default  {
             console.log("数据", d.CheckCommandParameters);
             console.log("长度", d.CheckCommandParameters.length);
             console.log(d.CheckCommandParameters[0].indexOf(','));
+            // <a class="layui-btn layui-btn-warm delete layer_checkOrder_deleteBtn" style="height: 24px;line-height: 24px;">删除</a>
             res += `
-                <div style="border-bottom:1px dashed #ccc; padding-bottom: 5px">
-                    <a class="layui-btn layui-btn-normal layer_checkOrder_addBtn" style="height: 24px;line-height: 24px;">新增</a>
-                    <a class="layui-btn layui-btn-warm delete layer_checkOrder_deleteBtn" style="height: 24px;line-height: 24px;">删除</a>
-                </div>
-                <div class="layer_checkOrder_content" style="display: flex">
+                <div class="layer_checkOrder_content" style="display: flex; flex-direction: column;">
             `
             for(let i=0; i<d.CheckCommandParameters.length; i++){
                 if(d.CheckCommandParameters[i].indexOf(',')>=0){
-                    let data = d.CheckCommandParameters[0].split(',');
+                    let data = d.CheckCommandParameters[i].split(',');
                     res+=`
                         <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
-                            <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[0]')}</p>
-                            <div style="margin: 5px">
-                                <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
-                                <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
-                            </div>
-                            <div style="margin: 5px">
-                                <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
-                                <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
+                            <p>${i+1}${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[1]')}</p>
+                            <div style="display: flex">
+                                <div style="margin: 5px">
+                                    <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
+                                    <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
+                                </div>
+                                <div style="margin: 5px">
+                                    <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
+                                    <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
+                                </div>
+                                <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
                             </div>
                         </div>
                     `
@@ -733,40 +727,17 @@ export default  {
                     res+=`
                         <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
                             <p>2级报警</p>
-                            <div style="margin: 5px">
-                                <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' autocomplete="off"  lay-skin='primary' value='${d.CheckCommandParameters[i]}' title='${d.CheckCommandParameters[i]}' />
+                            <div style="display: flex">
+                                <div style="margin: 5px">
+                                    <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' autocomplete="off"  lay-skin='primary' value='${d.CheckCommandParameters[i]}' title='${d.CheckCommandParameters[i]}' />
+                                </div>
+                                <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
                             </div>
                         </div>
                     `
                 }
             }
             res+='</div>'
-            
-            // <div class="layer_checkOrder_content" style="display: flex">
-            //     <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
-            //         <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[0]')}</p>
-            //         <div style="margin: 5px">
-            //             <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
-            //             <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${d.CheckCommandParameters[0]}' title='${d.CheckCommandParameters[0]}' />
-            //         </div>
-            //         <div style="margin: 5px">
-            //             <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
-            //             <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${d.CheckCommandParameters[0]}' title='${d.CheckCommandParameters[0]}' />
-            //         </div>
-            //     </div>
-            //     <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
-            //         <p>二级报警</p>
-            //         <div style="margin: 5px">
-            //             <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
-            //             <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${d.CheckCommandParameters[1]}' title='${d.CheckCommandParameters[1]}' />
-            //         </div>
-            //         <div style="margin: 5px">
-            //             <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
-            //             <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${d.CheckCommandParameters[1]}' title='${d.CheckCommandParameters[1]}' />
-            //         </div>
-            //     </div>
-            // </div>
-            // `
       }
       
       
@@ -788,7 +759,7 @@ export default  {
         return '/api/v1/setting/service/update'
       }
       if (edit == 'delete'){
-        return '/api/v1/setting/host/delete'
+        return '/api/v1/setting/service/delete'
       }
     }
   },
@@ -945,7 +916,7 @@ export default  {
     editType: 'null',
     editOpts(number) {
       return {
-        Id: new Date().valueOf(),
+        id: new Date().valueOf(),
         Name: vm.$t('Table.Box.Add.contactGroup.data') + Number(number + 1),
         Contacts: '',
         edit: 'add'

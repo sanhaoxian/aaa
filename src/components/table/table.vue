@@ -975,7 +975,6 @@ export default {
                     skin: 'set-Table',
                     btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                 }, function(index){
-                    console.log(vm.currentObj);
                     $.each(vm.currentObj,(i,e)=>{
                         e.edit='delete';
                         
@@ -988,30 +987,22 @@ export default {
                             console.log("具有id", e);
                         }else{
                             vm.updateGroup.push(e);
-                            // if(vm.updateGroup.length>0){
-                            //     console.log("没有id", e);
-                            //     let index2;
-                            //     // $.each(vm.updateGroup, (j,k)=>{
-                            //     //     if(k.Name==e.Name){
-                            //     //         index2 = j;
-                            //     //     }
-                            //     //     if(index2>=0){vm.updateGroup.splice(j,1)};
-                            //         vm.updateGroup.push(e);
-                            //     // });
-                            // }else{
-                            //     console.log("没有id的一个",e);
-                            //     vm.updateGroup.push(e);
-                            // }
                         }
                     })
-                    console.log("当前的全部", vm.updateGroup);
                     
                     //这里是界面上删除表格中的一行 
                     for(let i=0; i<vm.currentObj.length; i++){
                         for(let j=0; j<vm.Tdata.length; j++){
-                            if(vm.currentObj[i].Name==vm.Tdata[j].Name){
-                                vm.Tdata.splice(j, 1);
-                                j--;
+                            if(vm.sort=='monitoring'){
+                                if(vm.currentObj[i].Description==vm.Tdata[j].Description){
+                                    vm.Tdata.splice(j, 1);
+                                    j--;
+                                }
+                            }else{
+                                if(vm.currentObj[i].Name==vm.Tdata[j].Name){
+                                    vm.Tdata.splice(j, 1);
+                                    j--;
+                                }
                             }
                         }
                     }
@@ -1056,7 +1047,7 @@ export default {
                             });
                         })
                     }
-                    
+                   
                     layui.table.reload(vm.sort, {
                         data: vm.Tdata
                     })
@@ -1119,13 +1110,17 @@ export default {
                                 .then((res)=>{
                                     vm.successMsg(vm.$t('Tips[5]'))
                                     $('.deleteButton span').remove()
-                                    vm.getTableData();
+                                    if(vm.sort!='monitoring'){
+                                        vm.getTableData();
+                                    }
                                 },(err)=>{ 
                                     // 错误反馈
                                     vm.errorMsg(err.body.msg);
                                 });
-                                vm.curr = 1;
-                                vm.getTableData();
+                                if(vm.sort!='monitoring'){
+                                    vm.curr = 1;
+                                    vm.getTableData();
+                                }
                             }
                         }
                     }else if(e.edit=='update'){
@@ -1135,6 +1130,8 @@ export default {
                             if(vm.sort=='period'||vm.sort=='timedTask'){
                                 if(res.ok){
                                     vm.successMsg(vm.$t('Tips[6]'));
+                                    $('.deleteButton span').remove();
+                                    vm.getTableData();
                                     return;
                                 }
                             }
@@ -1170,11 +1167,16 @@ export default {
                 });
                 vm.updateGroup = [];
                 
+            }else{
+                $('.deleteButton span').remove();
             }
         },
         // 定时任务的 测试
         test() {
             let data = this.currentObj;
+            if(data.length<=0){
+                this.errorMsg("请选择测试对象", 3000)
+            }
             for(let i=0; i<data.length; i++){
                 this.$http.post('/config/rest/ControlTasks/'+data[i].Id+'?to_do=execute')
                 .then((res)=>{
@@ -1584,7 +1586,7 @@ export default {
                         type: 1,
                         title: res[0],
                         area: '550px',
-                        shadeClose: true,
+                        shadeClose: false,
                         content: `
                             <div class="layui-form"><form>${res[1]}<button hidden lay-submit lay-filter="${IDDDDDDDDDDDD}">提交</button> </form></div>
                         `,
@@ -1597,6 +1599,10 @@ export default {
                                     type: 'time',
                                     format: 'HH:mm'
                                 });
+                            }
+                            if(obj.event=="checkOrder"){
+                                layero.find('.layui-layer-btn1').addClass('layer_checkOrder_addBtn');
+                                layero.find('.layui-layer-btn1').css('background-color', '#007bbb');
                             }
                             form.on('submit('+IDDDDDDDDDDDD+')', function(data){
                                 let {field}=data
@@ -1612,11 +1618,17 @@ export default {
                                 layer.close(index);
                                 return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
                             });
+                            
                         },
-                        btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                        btn: obj.event=="checkOrder"?[vm.$t("Prompt_btn[0]"),vm.$t("Prompt_btn[2]"), vm.$t("Prompt_btn[1]")]:[vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                         yes: function(index, layero){
                             $('[lay-filter="'+IDDDDDDDDDDDD+'"').click()
                         },
+                        btn2: function(){
+                            if(obj.event=='checkOrder'){
+                                return false;
+                            }
+                        }
                     });
                 }
 
@@ -1627,6 +1639,12 @@ export default {
                 }else if(obj.event == 'deviceMore'){
                     let res = vm.config[vm.sort].editMore(obj.data, vm.timeSlot, vm.timeBase);
                     openLayer(res, obj);
+                    // 禁止手动输入
+                    $('input[type=number]').keypress(function(e) {
+                    　　if (!String.fromCharCode(e.keyCode).match(/[0-9]\./)) {
+                    　　　　return false;
+                    　　}
+                    });
                 }else if(obj.event == 'monitoring'){
                     vm.$emit('Monitoring', {hid:obj.data.Id});
                     // status = true;
@@ -1634,19 +1652,32 @@ export default {
                     let res = vm.config[vm.sort].editCheckOrder(obj.data);
                     openLayer(res, obj);
                     checkOrder_add();
+                    if($(".layer_checkOrder_block").length==0){
+                        $(".layer_checkOrder_deleteBtn").addClass("layui-btn-disabled");
+                    }
                     // 对新增按钮的监听
                     function checkOrder_add(){
                         $(".layer_checkOrder_addBtn").unbind();
+                        if($(".layer_checkOrder_block").length>=2){
+                            $(".layer_checkOrder_addBtn").addClass("layui-btn-disabled");
+                            $(".layer_checkOrder_addBtn").unbind();
+                            return ;
+                        }
                         $(".layer_checkOrder_addBtn").bind('click', ()=>{
-                            // console.log("点击函数");
+                            
+                            $(".layer_checkOrder_deleteBtn").removeClass("layui-btn-disabled");
+
                             let index = $(".layer_checkOrder_block").length;
                             let template = '';
                            
                             template = `
                                 <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
                                     <p>${index+1}级报警</p>
-                                    <div style="margin: 5px">
-                                        <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters${index+1}' lay-skin='primary' value='' title='' />
+                                    <div style="display: flex">
+                                        <div style="margin: 5px">
+                                            <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters${index+1}' lay-skin='primary' value='' title='' />
+                                        </div>
+                                        <i class="layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
                                     </div>
                                 </div>
                             `
@@ -1656,12 +1687,20 @@ export default {
                                 $(".layer_checkOrder_addBtn").addClass("layui-btn-disabled");
                                 $(".layer_checkOrder_addBtn").unbind();
                             }
+
+                            $(".layer_checkOrder_deleteBtn").bind('click', ($event)=>{
+                                $($event.target).parent().parent().remove();
+                                if($(".layer_checkOrder_block").length<=2 && $(".layer_checkOrder_block").length>=0){
+                                    $(".layer_checkOrder_addBtn").removeClass("layui-btn-disabled");
+                                    checkOrder_add();
+                                }
+                            });
                         });
                     }
 
                     // 对删除按钮的监听
-                    $(".layer_checkOrder_deleteBtn").bind('click', ()=>{
-                        $(".layer_checkOrder_block").eq($(".layer_checkOrder_block").length-1).remove();
+                    $(".layer_checkOrder_deleteBtn").bind('click', ($event)=>{
+                        $($event.target).parent().parent().remove();
                         if($(".layer_checkOrder_block").length<=2 && $(".layer_checkOrder_block").length>=0){
                             $(".layer_checkOrder_addBtn").removeClass("layui-btn-disabled");
                             checkOrder_add();
@@ -1670,6 +1709,11 @@ export default {
                 }else if(obj.event == 'serverMore'){
                     let res = vm.config[vm.sort].editMore(obj.data, vm.timeSlot, vm.timeBase);
                     openLayer(res, obj);
+                    $('input[type=number]').keypress(function(e) {
+                    　　if (!String.fromCharCode(e.keyCode).match(/[0-9]/)) {
+                    　　　　return false;
+                    　　}
+                    });
                 }else if(obj.event == 'passive_enabled'){
                     obj.data._PASSIVE_ENABLED=="1"? obj.data._PASSIVE_ENABLED=0 : obj.data._PASSIVE_ENABLED=1
                     obj.data.edit = 'update';
@@ -1858,6 +1902,9 @@ export default {
                                 if(index2!=null){vm.updateGroup.splice(index2, 1)};
                             }
                             vm.updateGroup.push(obj.data);
+                            if($('.deleteButton').find('span').length==0){
+                                $('.deleteButton').append('<span class="layui-badge-dot"></span>');
+                            }
                             vm.Tdata.forEach((el)=>{
                                 if(obj.data.hasOwnProperty('Id')){
                                     console.log(el.Id == obj.data.Id);
@@ -1951,9 +1998,11 @@ export default {
                             }
                         })
                         if(index2!=null){vm.updateGroup.splice(index2, 1)};
-                        vm.updateGroup.push(obj.data);
-                    }else{
-                        vm.updateGroup.push(obj.data);
+                        
+                    }
+                    vm.updateGroup.push(obj.data);
+                    if($('.deleteButton').find('span').length==0){
+                        $('.deleteButton').append('<span class="layui-badge-dot"></span>');
                     }
                     let index2;
                     $.each(vm.Tdata, (i,e)=>{
@@ -2107,45 +2156,55 @@ export default {
                     vm.updateGroup.push(obj.data);
                 }
             }else if(obj.event == 'checkOrder'){
-                console.log("数据", data);
                 let order = [];
-                
-                // for(let key in data){
-                //     order.push(data[key]);
-                // }
-                
-                // $.each(vm.Tdata, (i,e)=>{
-                //     if(e.Id==obj.data.Id){
-                //         e.edit = 'update';
-                //         e.CheckCommandParameters = [];
-                //         e.CheckCommandParameters.push(order.join(','));
-                //         vm.updateGroup.push(e);
-                //     }
-                // })
-
                 /******** */
                 if(data.hasOwnProperty('min')){
                     order.push(data['min']+','+data['max'])
                 }
-                // if(data.hasOwnProperty('min2')){
-                //     order.push(data['min']+','+data['max'])
-                // }
+                if(data.hasOwnProperty('CheckCommandParameters')){
+                    let value = data['CheckCommandParameters']
+                    if(value.indexOf('，')>=0 || value.indexOf(',') >= 0){
+                        order.push(value.replace(/，/, ','))
+                    }else{
+                        order.push(value);
+                    }
+                }
                 if(data.hasOwnProperty('CheckCommandParameters1')){
-                    let old = data['CheckCommandParameters1']
-                    order.push(old.replace(/，/, ','))
+                    let value = data['CheckCommandParameters1']
+                    if(value.indexOf('，')>=0 || value.indexOf(',') >= 0){
+                        order.push(value.replace(/，/, ','))
+                    }else{
+                        order.push(value);
+                    }
+                    
                 }
                 if(data.hasOwnProperty('CheckCommandParameters2')){
-                    order.push(data['CheckCommandParameters2'])
+                    let value = data['CheckCommandParameters2']
+                    if(value.indexOf('，')>=0 || value.indexOf(',') >= 0){
+                        order.push(value.replace(/，/, ','))
+                    }else{
+                        order.push(value);
+                    }
                 }
                 $.each(vm.Tdata, (i,e)=>{
                     if(e.Id==obj.data.Id){
                         e.edit = 'update';
                         e.CheckCommandParameters = [];
-                        // e.CheckCommandParameters.push(order.join(','));
                         e.CheckCommandParameters = order;
+
+                        if(vm.updateGroup.length>0){
+                            let index2=null;
+                            $.each(vm.updateGroup, (i,e)=>{
+                                if(e.Id===obj.data.Id){
+                                    index2=i
+                                }
+                            })
+                            if(index2!=null){vm.updateGroup.splice(index2, 1)};
+                        }
                         vm.updateGroup.push(e);
                     }
                 })
+                console.log(vm.updateGroup);
                 console.log("当前",order);
                 /********** */
 
@@ -2204,10 +2263,15 @@ export default {
                     })
                     if(index2>=0){vm.updateGroup.splice(index2, 1)};
                 };
-                console.log("当前加入的版本",obj,data);
                 vm.updateGroup.push(obj.data);
                 vm.Tdata.forEach((el)=>{
-                    if(el.id==obj.data.id){
+                    if(obj.data.hasOwnProperty('Id')){
+                        if(el.Id==obj.data.Id){
+                            for(let key in obj.data){
+                                el[key] = obj.data[key];
+                            }
+                        }
+                    }else if(el.id==obj.data.id){
                         for(let key in obj.data){
                             el[key] = obj.data[key];
                         }
@@ -2254,7 +2318,7 @@ export default {
             });
         },
         // 错误提示
-        errorMsg(msg) {
+        errorMsg(msg, second) {
             layui.layer.open({
                 type: 1,
                 offset: 'rt',
@@ -2263,7 +2327,7 @@ export default {
                 btn: '',
                 skin: 'errorMsg',
                 shade: 0,
-                time: 0,
+                time: second?second:0,
                 closeBtn:1
             });
         },
@@ -2382,6 +2446,10 @@ export default {
                 content: $('.addDeviceBox'),
                 yes: function(index, layero) {
                     var bkb = $(".layui-layer-content .C tbody tr"), i, j, k, l, code, A, B, C, flag = true;
+                    if(bkb.length<=0){
+                        layer.msg('请先加入设备',{time:2000}); 
+                        return false;
+                    }
                     for (i = 0; i < bkb.length; i++) {
                         A = bkb[i].childNodes[3].getAttribute("code") ? bkb[i].childNodes[3].getAttribute("code").split(",") : [];
                         B = bkb[i].childNodes[5].getAttribute("code") ? bkb[i].childNodes[5].getAttribute("code").split(",") : [];
@@ -2767,7 +2835,7 @@ export default {
                                 ${vm.$t('Table.Box.Cell.Period.other')}
                                 <input type="number" min="0" max="24" value="${t3}">
                                 <input type="number" min="0" max="60" value="${t4}">
-                                <span class="deletePeriodRange"> <i class="layui-icon layui-icon-close-fill" style="color: red; font-size: 28px;" ></i> </span>
+                                <span class="deletePeriodRange"> <i class="layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;" ></i> </span>
                             </div>
                         </div>
                         `
@@ -2784,7 +2852,7 @@ export default {
                         ${vm.$t('Table.Box.Cell.Period.other')}
                         <input type="number" min="0" max="24" value="24">
                         <input type="number" min="0" max="60" value="00">
-                        <span class="deletePeriodRange"><i class="layui-icon layui-icon-close-fill" style="color: red; font-size: 28px;" ></i> </span>
+                        <span class="deletePeriodRange"><i class="layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;" ></i> </span>
                     </div>
                 </div>
                 `
@@ -2807,7 +2875,6 @@ export default {
                     let list = $(layero).find('.layui-inline');
                     if(list.length>0){
                         let h1,m1,h2,m2,timeperiod='';
-                       
                         $.each($(list), (i, e)=>{
                             h1 = $(e).find('input').eq(0).val();
                             m1 = $(e).find('input').eq(1).val();
@@ -2863,6 +2930,9 @@ export default {
                 },
                 btn2: function(index, layero) {
                     addTemp();
+                    $('.deletePeriodRange').click(function(){
+                        $(this).parent().remove()
+                    });
                     return false;
                 },
                 btn3: function(index, layero) {
@@ -3049,7 +3119,14 @@ body
                     min-width 120px
                     left auto
                     top auto
-    
+    ::-webkit-scrollbar
+        width 6px
+        background #383842
+    ::-webkit-scrollbar-thumb
+        background #2d8ad2
+    ::-webkit-scrollbar-button 
+        display: none
+        background-color #383842
 // div[class$="-Hostgroups"]
 //     overflow: unset;
 .addDeviceBox
