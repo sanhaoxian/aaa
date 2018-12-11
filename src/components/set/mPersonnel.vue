@@ -47,15 +47,18 @@ export default{
         getUser() {
             this.$refs.user.getHosts()
             this.$refs.user.getTableData();
+            $('.deleteButton span').remove();
         },
         getContactGroup() {
             this.$refs.contactGroup.getTableData();
+            $('.deleteButton span').remove();
         },
         getContacts() {
             this.$refs.contacts.getTableData();
             this.$refs.contacts.getContactgroup();
             this.$refs.contacts.loadTime();
             this.$refs.contacts.getCommand();
+            $('.deleteButton span').remove();
         }
     }
 }

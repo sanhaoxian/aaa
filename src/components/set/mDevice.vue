@@ -53,7 +53,10 @@ export default {
     methods: {
         addMonitoringTab(params) {
             this.moTab = true;
-            layui.element.tabChange('setting-devices', 'monitor');
+            this.$nextTick(()=>{
+                console.log("触发到了");
+                layui.element.tabChange('setting-devices', 'monitor');
+            });
             this.$refs.monitoringTab.renderMonitoring(params);
         },
         gethost() {

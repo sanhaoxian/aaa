@@ -159,14 +159,14 @@
                             </select>     
                         </div>
                     </div>
-                    <div v-if="userRole" class="userRole">
+                    <div class="userRole">
                         <div class="layui-form-item hostAll" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[2]')}}</label>
                             <div class="layui-input-block">
                                 <input type="checkbox" name="host[All]" value="0" :title="$t('Table.Box.Add.user.option[0]')" lay-skin="primary" lay-filter="selectAll">
                                 <ul>
                                     <li v-for="it in hostgroup" :key="it.Id">
-                                        <input type="checkbox" :value="it.Id" :title="it.Name" name="host" lay-skin="primary">
+                                        <input type="checkbox" :value="it.Id" :title="it.Name" :name="'host'+it.Id" lay-skin="primary">
                                     </li>
                                 </ul>
                             </div>
@@ -177,7 +177,7 @@
                                 <input type="checkbox" name="contact[All]" value="0" :title="$t('Table.Box.Add.user.option[1]')" lay-skin="primary" lay-filter="selectAll">
                                 <ul>
                                     <li v-for="it in contactsList" :key="it.Id">
-                                        <input type="checkbox" :value="it.Id" :title="it.Name" name="contact" lay-skin="primary">
+                                        <input type="checkbox" :value="it.Id" :title="it.Name" :name="'contact'+it.Id" lay-skin="primary">
                                     </li>
                                 </ul>
                             </div>
@@ -586,7 +586,7 @@ export default {
             curr: 1,
             curParams: '',
             // 人员管理部分
-            userRole: false,
+            // userRole: false,
             changePwd: false,
             setPwd: true,
             reSetPwd: false,
@@ -618,7 +618,6 @@ export default {
                 Id: null,
                 WorkValue: null,
             },
-
             compareVisible: false
         }
     },
@@ -812,18 +811,20 @@ export default {
                     layui.form.render();
                     if(vm.sort=="user"){
                         $("#modityUserForm").find('input[name="userName"]').attr("readonly", false)
-                        vm.userRole = false;
+                        $('.userRole').eq(0).attr('hidden', 'hidden');
                         layui.form.val("modityUserForm", {
                             "userName": "",
                             "Type": "0",
                             "pwd": "",
                             "repwd": ""
                         })
+                        $('.userRole').find('input[type=checkbox]').removeAttr('checked')
                         // 人员管理员的角色分配，附加机房和联系人组的条件
                         layui.form.on('select(selectUserRole)', function(data){
-                            data.value!=0 ? vm.userRole=true : vm.userRole=false;
+                            data.value!=0?$('.userRole').eq(0).removeAttr('hidden'):$('.userRole').eq(0).attr('hidden', 'hidden');
+                            layui.form.render();
                             vm.$nextTick(()=>{
-                                $("#modityUserForm").find('input[name="userName"]').attr("readonly", false)
+                                $("#modityUserForm").find('input[name="userName"]').attr("readonly", false);
                                 layui.form.render();
                                 layui.form.on('checkbox(selectAll)', function(data){
                                     if(data.elem.checked){
@@ -907,7 +908,14 @@ export default {
                         if(!reg.test(res.User2)){return vm.errorMsg('邮箱格式错误'); return false}
                     }else{
                         res = vm.config[vm.sort].submitFile('add', postData);
+                        if(vm.sort== 'forward'){
+                            res.data.edit = 'add';
+                            vm.updateGroup.push(res.data);
+                            layer.close(index);
+                            return 
+                        }
                         if(!res.feedback.status){ vm.errorMsg(res.feedback.msg); return false; }
+                        
                     }
                     // 统一向后台发送数据，并且重新刷新表格数据。
                     if(vm.sort== 'contacts'){
@@ -984,35 +992,44 @@ export default {
                                 if(k.id==e.id){index=j}
                             });
                             vm.updateGroup.splice(index, 1);
-                            console.log("具有id", e);
                         }else{
                             vm.updateGroup.push(e);
                         }
                     })
                     
-                    //这里是界面上删除表格中的一行 
-                    for(let i=0; i<vm.currentObj.length; i++){
-                        for(let j=0; j<vm.Tdata.length; j++){
-                            if(vm.sort=='monitoring'){
-                                if(vm.currentObj[i].Description==vm.Tdata[j].Description){
-                                    vm.Tdata.splice(j, 1);
-                                    j--;
-                                }
-                            }else{
-                                if(vm.currentObj[i].Name==vm.Tdata[j].Name){
-                                    vm.Tdata.splice(j, 1);
-                                    j--;
+                    if(vm.sort!=='user'){
+                        //这里是界面上删除表格中的一行 
+                        for(let i=0; i<vm.currentObj.length; i++){
+                            for(let j=0; j<vm.Tdata.length; j++){
+                                if(vm.sort=='monitoring'){
+                                    if(vm.currentObj[i].Description==vm.Tdata[j].Description){
+                                        vm.Tdata.splice(j, 1);
+                                        j--;
+                                    }
+                                }else{
+                                    if(vm.currentObj[i].Name==vm.Tdata[j].Name){
+                                        vm.Tdata.splice(j, 1);
+                                        j--;
+                                    }
                                 }
                             }
                         }
                     }
-
                     if(vm.sort=='user'){
                         $.each(vm.currentObj, (i, e)=>{
                             vm.$http.get(vm.config[vm.sort].onSubmit('delete')+'?uid='+e.Id)
                             .then((res)=>{
                                 if(res.body.status){
                                     vm.successMsg(res.body.msg);
+                                    for(let j=0; j<vm.Tdata.length; j++){
+                                        if(e.Id==vm.Tdata[j].Id){
+                                            vm.Tdata.splice(j, 1);
+                                            j--;
+                                        }
+                                    }
+                                    layui.table.reload(vm.sort, {
+                                        data: vm.Tdata
+                                    })
                                 }else{
                                     vm.errorMsg(res.body.msg);
                                 }
@@ -1066,10 +1083,15 @@ export default {
 
                 $.each(vm.updateGroup, (i, e)=>{
                     if(e.edit=='add'){
-                        let data = vm.config[vm.sort].submitFile('create', e);
-                        if(data.error){
-                            vm.errorMsg(data.errMsg)
-                            return;
+                        let data;
+                        if(vm.sort!="forward"){
+                            data = vm.config[vm.sort].submitFile('create', e);
+                            if(data.error){
+                                vm.errorMsg(data.errMsg)
+                                return;
+                            }
+                        }else{
+                            data = e
                         }
                         
                         vm.$http.post(vm.config[vm.sort].onSubmit('create'), data)
@@ -1096,11 +1118,12 @@ export default {
                             if(vm.sort=='period'||vm.sort=='timedTask'){
                                 vm.$http.delete(vm.config[vm.sort].onSubmit('delete', e.Id))
                                 .then((res)=>{
+                                    console.log(res);
                                     vm.successMsg(vm.$t('Tips[5]'))
                                     $('.deleteButton span').remove();
                                 },(err)=>{ 
                                     // 错误反馈
-                                    vm.errorMsg(err.body.msg);
+                                    vm.errorMsg(err.body.error);
                                 });
                                 vm.curr = 1;
                                 vm.getTableData();
@@ -1265,7 +1288,6 @@ export default {
                 return false;
             }
             if(vm.sort=='user'){
-                console.log("点击修改user");
                 vm.userEditBox.userName = vm.currentObj[0].Name;
                 id = vm.currentObj[0].Id;
                 this.setPwd = false;
@@ -1353,21 +1375,20 @@ export default {
                     success: function(){
                         if(vm.sort=='user'){
                             vm.$nextTick(function(){
-                                vm.currentObj[0].Type!=0 ? vm.userRole=true : vm.userRole=false;
-                                vm.$nextTick(()=>{
-                                    $("#modityUserForm").find('input[name="userName"]').attr("readonly", true)
-                                    for(let it of vm.currentObj[0].HostGroups){
-                                        $("#modityUserForm .hostAll").find("input[value="+it.Id+"]").attr('checked', true)
-                                    }
-                                    for(let it of vm.currentObj[0].ContactGroups){
-                                        $("#modityUserForm .contactAll").find("input[value="+it.Id+"]").attr('checked', true)
-                                    }
-                                    layui.form.render()
-                                });
-                                    
+                                vm.currentObj[0].Type!=0 ? $('.userRole').eq(0).removeAttr('hidden') : $('.userRole').eq(0).attr('hidden', 'hidden');
+                                let initValue = {}
+                                for(let it of vm.currentObj[0].HostGroups){
+                                    initValue['host'+it.Id] = true
+                                }
+                                for(let it of vm.currentObj[0].ContactGroups){
+                                    initValue['contact'+it.Id] = true
+                                }
+                                console.log(initValue);
+                                layui.form.val("modityUserForm", initValue)
+
                                 // 这里是监听是否为某个角色
                                 layui.form.on('select(selectUserRole)', function(data){
-                                    data.value!=0 ? vm.userRole=true : vm.userRole=false;
+                                    data.value!=0 ? $('.userRole').eq(0).removeAttr('hidden') : $('.userRole').eq(0).attr('hidden', 'hidden');
                                     vm.$nextTick(()=>{
                                         layui.form.on('checkbox(selectAll)', function(data){
                                             if(data.elem.checked){
@@ -1423,11 +1444,10 @@ export default {
                                 renewpwd: "",
                                 user: ""
                             }
-                           
                             $.each(postData, (i, e)=>{
                                 if(e.name=="Type"){data.type=e.value};
-                                if(e.name=="host"){data.hostgroups.push({id: e.value})};
-                                if(e.name=='contact'){data.contactgroups.push({id: e.value})};
+                                if(e.name.indexOf('host')>=0){data.hostgroups.push({id: e.value})};
+                                if(e.name.indexOf('contact')>=0){data.contactgroups.push({id: e.value})};
                             })
                             vm.$http.post(vm.config[vm.sort].onSubmit('update'), data)
                             .then((res)=>{
@@ -1490,6 +1510,9 @@ export default {
                             box.find('input[name="Subgroup"]').val('')
                             box.find('select[name="Target"]').val('');
                             box.find('select[name="Hostgroup"]').val('')
+                        }
+                        if(vm.sort=='user'){
+                            $('.userRole').find('input[type=checkbox]').removeAttr('checked')
                         }
                     }
                 });
@@ -1579,6 +1602,7 @@ export default {
 
             /* 监听设备组表格点击事件 并弹出表单框的类型 eg:设置——联系人组 */
             layui.table.on('tool('+vm.sort+')', function(obj){
+                console.log(obj.event.indexOf('setPeriod'));
                 // let status = false
                 function openLayer(res, obj){
                     let IDDDDDDDDDDDD=new Date().valueOf()
@@ -1641,7 +1665,7 @@ export default {
                     openLayer(res, obj);
                     // 禁止手动输入
                     $('input[type=number]').keypress(function(e) {
-                    　　if (!String.fromCharCode(e.keyCode).match(/[0-9]\./)) {
+                    　　if (!String.fromCharCode(e.keyCode).match(/[0-9]/)) {
                     　　　　return false;
                     　　}
                     });
@@ -1960,7 +1984,21 @@ export default {
                                 actions: orderChecked.data
                             });
                             
+                            vm.Tdata.forEach((el)=>{
+                                if(obj.data.hasOwnProperty('Id')){
+                                    if(el.Id == obj.data.Id){
+                                        el.actions = obj.data.actions
+                                    }
+                                }else{
+                                    if(el.id == obj.data.id){
+                                        el.actions = obj.data.actions
+                                    }
+                                }
+                            })
                             vm.renderTable(vm.Tdata);
+                            layui.table.reload(vm.sort,{
+                                data: vm.Tdata
+                            })
 
                             obj.data.edit=='add'?'':obj.data.edit = 'update';
 
@@ -1972,10 +2010,8 @@ export default {
                                     }
                                 })
                                 if(index2!=null){vm.updateGroup.splice(index2, 1)};
-                                vm.updateGroup.push(obj.data);
-                            }else{
-                                vm.updateGroup.push(obj.data);
-                            }
+                                
+                            }vm.updateGroup.push(obj.data);
                             layer.close(index);
                         },
                         end(){
@@ -2869,6 +2905,12 @@ export default {
                 success: function(layero, index){
                     $('.deletePeriodRange').click(function(){
                         $(this).parent().remove()
+                    });
+                    // 禁止手动输入
+                    $('input[type=number]').keypress(function(e) {
+                    　　if (!String.fromCharCode(e.keyCode).match(/[0-9]/)) {
+                    　　　　return false;
+                    　　}
                     });
                 },
                 btn1: function(index, layero){
