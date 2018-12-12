@@ -1124,6 +1124,9 @@ export default  {
         if(data.HostNotificationCommands.length<=0 || data.ServiceNotificationCommands.length<=0){
             data.error = true;
             data.errMsg = "更多参数中不能为空"
+        }else{
+            data.error = false;
+            data.errMsg = "正常"
         };
         return data;
       }

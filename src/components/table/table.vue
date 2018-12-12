@@ -2,7 +2,7 @@
     <div id="table">
         <div class="layui-tab-item layui-show layui-form">
             <!-- 表格按钮 -->
-            <div>
+            <div class="operateBtnList">
                 <button class="layui-btn layui-btn-normal" v-if="operate.add" @click="add()" layui-filter>
                     <i class="glyphicon glyphicon-plus"></i>
                     {{$t('Table.Operate_Btn_list[0]')}}
@@ -638,6 +638,12 @@ export default {
     methods:{
         init() {
             let vm = this;
+            /*****用户类型测试*********************************************/
+            // 预设当前用户 先获取是否由localstorage
+            let gd3nUserType;
+            window.localStorage.gd3nUserType ? gd3nUserType=window.localStorage.gd3nUserType : gd3nUserType=0
+            
+            /**************************************************/
             vm.config = require('./tableConfig.js').default;
             vm.operate.add = vm.config[vm.sort].operating.add;
             vm.operate.delete = vm.config[vm.sort].operating.delete;
@@ -651,8 +657,21 @@ export default {
             vm.operate.log = vm.config[vm.sort].operating.log;
             vm.operate.application = vm.config[vm.sort].operating.application;
             vm.operate.batchEdit = vm.config[vm.sort].operating.batchEdit;
-            this.laypageId += Math.floor(Math.random()*100);
 
+            /**********************************/
+            if(gd3nUserType=='2'){
+                vm.$nextTick(()=>{
+                    $(".operateBtnList").children("button").attr("disabled", true);
+                    let list = $(".operateBtnList").children("button");
+                    for(let i=0;i<list.length; i++){
+                        $(list[i]).attr("disabled")
+                        $(list[i]).addClass('layui-btn-disabled');
+                        $(list[i]).removeClass('delete batch modify log test compared')
+                    }
+                });
+            }
+            /*********************************/
+            this.laypageId += Math.floor(Math.random()*100);
             this.getHosts()
         },
         /* 所有表格中通用方法 */
@@ -1211,13 +1230,28 @@ export default {
             // this.$http.post('/config/rest/ControlTasks/'+)
         },
         compared(){
+            let vm = this;
+            // console.log($('.compared').siblings());
+            // $('.compared').siblings().attr('disabled', true)
+            // $('.compared').siblings().addClass('layui-btn-disabled')
             if(this.currentObj.length<2){
                 this.errorMsg(vm.$t('Table.Box.comcontrast.timedTask.tips[0]'));
                 return false;
             }
+            // 这里需要判断一下是否有新增的数据在这里。如果有的话不进入对比状态，并提示
+            // 判断的依据是 e.edit,是否含有edit编辑字段
+            let go = true
+            this.currentObj.forEach((e,i)=>{
+                if(e.hasOwnProperty('edit')){
+                    go = false;
+                    return false;
+                }
+            });
+            if(!go){vm.errorMsg("新增对象不能对比");return false}
+            /************************************************* */
             this.compareVisible = !this.compareVisible;
             if(this.compareVisible){
-                let vm = this, compareList = this.currentObj, newCols = [[ {field: 'itemName', title: '', align: 'center'} ]]
+                let compareList = this.currentObj, newCols = [[ {field: 'itemName', title: '', align: 'center'} ]]
                 let newCompareList = [
                     {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[0]')},
                     {itemName: vm.$t('Table.Box.comcontrast.timedTask.label[1]')},

@@ -719,9 +719,13 @@ export default {
                         }
                     }
                 }
-                vm.oldpue = x.data.items;
-                vm.newpue = [];
-                vm.refreshService();
+                // console.log("旧的", vm.oldpue);
+                vm.$nextTick(()=>{
+                    vm.oldpue = x.data.items;
+                    vm.refreshService();
+                });
+                // vm.newpue = [];
+                
             });
         },
         //添加功率项
@@ -736,7 +740,7 @@ export default {
                         serId: $(bkb[i]).attr("serid"),
                         hostId: vm.index.hostId,
                         serName: $(bkb[i]).parent().text(),
-                        id: parseInt(Math.random()*100, 10)
+                        id: parseInt(Math.random()*1000, 10)
                     });
                     bkb[i].checked = false;
                     $(bkb[i]).attr("disabled","disabled").parents("label").attr("disabled","disabled");
@@ -777,7 +781,7 @@ export default {
                     cache: false
                 }).then(function (x) {
                     if(!x.status){
-                        vm.successMsg(x.msg);
+                        vm.errorMsg(x.msg);
                     }
                     k++;
                     if (k == vm.delpue.length) {
@@ -803,7 +807,7 @@ export default {
                     data: JSON.stringify(code)
                 }).then(function (x) {
                     if(!x.status){
-                        vm.successMsg(x.msg);
+                        vm.errorMsg(x.msg);
                     }
                     l++;
                     if (l == xkb.length) {
@@ -831,11 +835,10 @@ export default {
                     data: JSON.stringify(code)
                 }).then(function (x) {
                     if(!x.status){
-                        vm.successMsg(x.msg);
+                        vm.errorMsg(x.msg);
                     }
                     j++;
                     if (j == bkb.length) {
-                        vm.newpue = [];
                         vm.loadService();
                         vm.successMsg(vm.$t('Tips[2]'));
                     }
