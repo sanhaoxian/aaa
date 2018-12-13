@@ -275,12 +275,23 @@ export default{
                 type: 1,
                 offset: 'rt',
                 title: '',
-                content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                // content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                content: msg,
                 btn: '',
                 skin: 'errorMsg',
                 shade: 0,
-                time: 0,
-                closeBtn:1
+                time: 3000,
+                closeBtn: 0,
+                success(layero, index){
+                    let top, length = $(".errorMsg").length;
+                    $(".errorMsg").each((i, e)=>{
+                        top = parseInt($(e).css('top'), 10);
+                        top = (top+100*i)+'px';
+                    });
+                    layui.layer.style(index,{
+                        top: top,
+                    })
+                }
             });
         },
     }

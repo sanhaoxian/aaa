@@ -1150,10 +1150,14 @@ export default {
                                 let data = vm.config[vm.sort].submitFile('delete', e);
                                 vm.$http.get(vm.config[vm.sort].onSubmit('delete'), {params: data})
                                 .then((res)=>{
-                                    vm.successMsg(vm.$t('Tips[5]'))
-                                    $('.deleteButton span').remove()
-                                    if(vm.sort!='monitoring'){
-                                        vm.getTableData();
+                                    if(res.body.status){
+                                        vm.successMsg(vm.$t('Tips[5]'))
+                                        $('.deleteButton span').remove()
+                                        if(vm.sort!='monitoring'){
+                                            vm.getTableData();
+                                        }
+                                    }else{
+                                        vm.errorMsg(res.body.msg)
                                     }
                                 },(err)=>{ 
                                     // 错误反馈
@@ -1636,7 +1640,6 @@ export default {
 
             /* 监听设备组表格点击事件 并弹出表单框的类型 eg:设置——联系人组 */
             layui.table.on('tool('+vm.sort+')', function(obj){
-                console.log(obj.event.indexOf('setPeriod'));
                 // let status = false
                 function openLayer(res, obj){
                     let IDDDDDDDDDDDD=new Date().valueOf()
@@ -2096,10 +2099,9 @@ export default {
                     })
                 }else if(obj.event == 'extendHosts'){
                     // vm.$emit('extendHosts', 'hello,world!', this)
+                    let res = vm.config[vm.sort].extend(obj.data);
+                    openLayer(res, obj);
                 }
-                /********************************** */
-                // console.log("双击事件",this, obj);
-                /********************************** */
             })
             // 监听表格复选
             layui.table.on('checkbox('+vm.sort+')', function(obj){
@@ -2393,26 +2395,48 @@ export default {
                 type: 1,
                 offset: 'rt',
                 title: '',
-                content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                // content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                content: msg,
                 btn: '',
                 skin: 'errorMsg',
                 shade: 0,
-                time: second?second:0,
-                closeBtn:1
+                time: second?second:3000,
+                closeBtn:0,
+                success(layero, index){
+                    let top, length = $(".errorMsg").length;
+                    $(".errorMsg").each((i, e)=>{
+                        top = parseInt($(e).css('top'), 10);
+                        top = (top+100*i)+'px';
+                    });
+                    layui.layer.style(index,{
+                        top: top,
+                    })
+                }
             });
+            
         },
         // 成功提示
         successMsg(msg) {
             layui.layer.open({
-                type: 0,
+                type: 1,
                 offset: 'rt',
                 title: '',
-                // content: '<i class="layui-icon layui-icon-ok"  style="font-size: 30px;"></i>'+msg,
-                content: '<img src="/public/images/currency/shield_ok.ico"/>'+msg,
+                // content: '<img src="/public/images/currency/shield_ok.ico"/>'+msg,
+                content: msg,
                 btn: '',
                 skin: 'successMsg',
                 shade: 0,
-                time: 2000, 
+                time: 3000,
+                success(layero, index){
+                    let top, length = $(".successMsg").length;
+                    $(".successMsg").each((i, e)=>{
+                        top = parseInt($(e).css('top'), 10);
+                        top = (top+100*i)+'px';
+                    });
+                    layui.layer.style(index,{
+                        top: top,
+                    })
+                }
             });
         },
         /******************************************************************************************* */
@@ -3155,16 +3179,19 @@ body
         .layui-layer-title
             background #e74c3c
         .layui-layer-content
-            background-color #e74c3c
+            // background-image url("/public/images/currency/shield_error.ico") no-repeat;
+            background #e74c3c url("/public/images/currency/shield_error.ico") no-repeat 4% center / 10%;
             border none
             border-radius 10px
             color #fff
-            padding 10px
-            width 250px
-        .layui-layer-setwin
-            // display none
-            right: 20px;
-            top: 20px;
+            width 300px
+            height 90px
+            display flex
+            justify-content space-around
+            align-items center
+            font-size 16px
+            padding 0 20px 0 50px
+            // box-shadow inset 5px 5px 5px #999
     .successMsg
         box-shadow none
         border-radius 10px
@@ -3175,11 +3202,16 @@ body
         .layui-layer-title
             background none
         .layui-layer-content
-            background-color #27ae60
+            background #27ae60 url("/public/images/currency/shield_ok.ico") no-repeat 4% center / 10%
             border none
             border-radius 5px
             color #fff
-            width 250px
+            width 300px
+            height 90px
+            display flex
+            justify-content space-around
+            align-items center
+            font-size 16px
         .layui-layer-setwin
             display none
 
@@ -3200,7 +3232,7 @@ body
         background #383842
     ::-webkit-scrollbar-thumb
         background #2d8ad2
-    ::-webkit-scrollbar-button 
+    ::-webkit-scrollbar-button
         display: none
         background-color #383842
 // div[class$="-Hostgroups"]

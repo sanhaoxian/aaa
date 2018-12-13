@@ -402,11 +402,22 @@ export default {
                 type: 0,
                 offset: 'rt',
                 title: '',
-                content: '<img src="/public/images/currency/shield_ok.ico"/>'+msg,
+                // content: '<img src="/public/images/currency/shield_ok.ico"/>'+msg,
+                content: msg,
                 btn: '',
                 skin: 'successMsg',
                 shade: 0,
-                time: 2000, 
+                time: 3000,
+                success(layero, index){
+                    let top, length = $(".successMsg").length;
+                    $(".successMsg").each((i, e)=>{
+                        top = parseInt($(e).css('top'), 10);
+                        top = (top+100*i)+'px';
+                    });
+                    layui.layer.style(index,{
+                        top: top,
+                    })
+                } 
             });
         },
         errorMsg(msg) {
@@ -414,11 +425,22 @@ export default {
                 type: 0,
                 offset: 'rt',
                 title: '',
-                content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                // content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                content: msg,
                 btn: '',
                 skin: 'errorMsg',
                 shade: 0,
-                time: 2000, 
+                time: 3000, 
+                success(layero, index){
+                    let top, length = $(".errorMsg").length;
+                    $(".errorMsg").each((i, e)=>{
+                        top = parseInt($(e).css('top'), 10);
+                        top = (top+100*i)+'px';
+                    });
+                    layui.layer.style(index,{
+                        top: top,
+                    })
+                }
             });
         },
 
@@ -1400,10 +1422,17 @@ div[class$="-Type"]
     .layui-layer-title
         background none
     .layui-layer-content
-        background-color #e74c3c
+        background #e74c3c url("/public/images/currency/shield_error.ico") no-repeat 4% center / 10%;
         border none
         border-radius 10px
         color #fff
+        width 300px
+        height 90px
+        display flex
+        justify-content space-around
+        align-items center
+        font-size 16px
+        padding 0 20px 0 50px
     .layui-layer-setwin
         // display none
         right: 20px;
@@ -1418,10 +1447,16 @@ div[class$="-Type"]
     .layui-layer-title
         background none
     .layui-layer-content
-        background-color #27ae60
+        background #27ae60 url("/public/images/currency/shield_ok.ico") no-repeat 4% center / 10%
         border none
-        border-radius 10px
+        border-radius 5px
         color #fff
+        width 300px
+        height 90px
+        display flex
+        justify-content space-around
+        align-items center
+        font-size 16px
     .layui-layer-setwin
         display none
 </style>

@@ -69,6 +69,13 @@ export default  {
         edit: 'add'
       }
     },
+    extend(data) {
+        let res = "";
+        data.Hosts.forEach(element => {
+            res += `<li style="margin:10px">${element}</li>`
+        });
+        return res = ['设备扩展', '<ul style="display: flex; flex-wrap: wrap; justify-content: space-around;">'+res+'</ul>']
+    },
     submitFile(edit, obj) {
       let data = {};
       if (edit == 'create') {
