@@ -1,6 +1,7 @@
 export default  {
   hostGroup: {
     api: '/api/v1/setting/hostgroup',
+    // select: true,
     operating: {
       add: true,
       delete: true,
@@ -106,7 +107,8 @@ export default  {
       add: true,
       delete: true,
       save: true,
-      management: true
+      management: true,
+      filter: true
     },
     cols: [
       {

@@ -11,7 +11,7 @@
                     <i class="glyphicon glyphicon-minus "></i>
                     {{$t('Table.Operate_Btn_list[1]')}}
                 </button>
-                <button class="layui-btn layui-btn-normal deleteButton" v-if="operate.save" @click="updated()">
+                <button class="layui-btn layui-btn-normal modifyFlag" v-if="operate.save" @click="updated()">
                     <i class="glyphicon glyphicon-floppy-disk"></i>
                     {{$t('Table.Operate_Btn_list[2]')}}
                 </button>
@@ -47,6 +47,36 @@
                     <i class="glyphicon glyphicon-adjust"></i>
                     {{$t('Table.Operate_Btn_list[10]')}}
                 </button>
+                <div class="device_filter" v-if='operate.filter'>
+                    <form >
+                        <div class="layui-form-item" >
+                            <label class="layui-form-label">机房</label>
+                            <div class="layui-input-inline">
+                            <select name="hgid">
+                                <option value=""></option>
+                                <option v-for="item in hostgroup" :key="item.Id" :value="item.Id">{{item.Name}}</option>
+                            </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item" >
+                                <label class="layui-form-label">查询类别</label>
+                                <div class="layui-input-inline">
+                                <select name="class">
+                                    <option value=""></option>
+                                    <option value="Name">设备名称</option>
+                                    <option value="driver">驱动</option>
+                                    <option value="IP">IP</option>
+                                </select>
+                                </div>
+                            </div>
+                        <div class="layui-form-item">
+                            <input type="text" name="key" autocomplete="off" class=" layui-input-inline layui-input text-input">
+                        </div>
+                        <div class="layui-form-item">
+                            <a class="layui-btn layui-btn-normal" @click="filter_device()">搜索</a>
+                        </div>
+                    </form>
+                </div>
             </div>
             <!-- 展示数据表格 -->
             <table class="layui-hide setTable" :id="sort" :lay-filter="sort" lay-data="{id: 'dataTable'}"></table>
@@ -618,13 +648,12 @@ export default {
                 Id: null,
                 WorkValue: null,
             },
-            compareVisible: false
+            compareVisible: false,
+            device_filter: false
         }
     },
     mounted() {
-        if(this.sort=='devices'){window.app=this};
-        let vm = this;
-        
+        // let vm = this;
         layui.use(["element", "layer", "table", "laypage", "form", "laydate"], () => {
             layui.element.on('tab(setting-devices)', function(data){
                 if(data.index=='0'){
@@ -634,6 +663,9 @@ export default {
         });
         window.vm = this;
         this.init();
+        if(this.sort=='devices'){ 
+            window.app=this; 
+        }
     },
     methods:{
         init() {
@@ -657,6 +689,7 @@ export default {
             vm.operate.log = vm.config[vm.sort].operating.log;
             vm.operate.application = vm.config[vm.sort].operating.application;
             vm.operate.batchEdit = vm.config[vm.sort].operating.batchEdit;
+            vm.operate.filter = vm.config[vm.sort].operating.filter;
 
             /**********************************/
             if(gd3nUserType=='2'){
@@ -672,7 +705,17 @@ export default {
             }
             /*********************************/
             this.laypageId += Math.floor(Math.random()*100);
-            this.getHosts()
+            this.getHosts();
+        },
+        filter_device() {
+            let vm = this;
+            let list = $('.device_filter form').serializeArray(), params={};
+            params[list.find(e => e.name=='hgid').name] = list.find(e => e.name=='hgid').value;
+            params[list.find(e => e.name=='class').value] = list.find(e => e.name=='key').value;
+            vm.curParams = params;
+            vm.getTableData('', params)
+            vm.curr = 1
+            return false
         },
         /* 所有表格中通用方法 */
         // 通用——获取联系人组
@@ -744,22 +787,17 @@ export default {
                 data: tdata,
                 even: true,
                 page: false,
+                limit:  (vm.sort=='hostGroup'&& 100) || 10,
+                height: (vm.sort=="hostGroup"&&"full-300") || "",
                 size: "lg",
                 skin: "set-table",
                 done(res) {
                     let changeList = [];
-                    // console.log("================");
-                    // console.log(res.data);
                     for(let i=0; i<res.data.length; i++){
                         if(res.data[i].hasOwnProperty('edit')){
                             $('.layui-table').find('tr[data-index='+i+']').css('color', 'green')
                         }
                     }
-                    // console.log(changeList);
-                    // console.log("================");
-                    // for(let j=0; j<changeList.length; j++){
-                        
-                    // }
                 }
             }
             layui.table.render(opts);
@@ -779,8 +817,8 @@ export default {
                 });
                 editOpts.edit = 'add';
                 vm.updateGroup.push(editOpts);
-                if($('.deleteButton').find('span').length==0){
-                    $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                if($('.modifyFlag').find('span').length==0){
+                    $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
                 }
             }else{
                 this.sort=='devices'&&this.addItem();
@@ -1090,8 +1128,8 @@ export default {
                     vm.currentObj = [];
 
                     layer.close(index);
-                    if($('.deleteButton').find('span').length==0){
-                        $('.deleteButton').append('<span class="layui-badge-dot"></span>');
+                    if($('.modifyFlag').find('span').length==0){
+                        $('.modifyFlag').append('<span class="layui-badge-dot"></span>');
                     }
                 });
         },
@@ -1126,7 +1164,7 @@ export default {
                             }else{
                                 vm.errorMsg(res);
                             }
-                            $('.deleteButton span').remove();
+                            $('.modifyFlag span').remove();
                             vm.curr = 1;
                             vm.getTableData();
                         },(err)=>{
@@ -1137,22 +1175,21 @@ export default {
                             if(vm.sort=='period'||vm.sort=='timedTask'){
                                 vm.$http.delete(vm.config[vm.sort].onSubmit('delete', e.Id))
                                 .then((res)=>{
-                                    console.log(res);
                                     vm.successMsg(vm.$t('Tips[5]'))
-                                    $('.deleteButton span').remove();
+                                    $('.modifyFlag span').remove();
                                 },(err)=>{ 
                                     // 错误反馈
                                     vm.errorMsg(err.body.error);
                                 });
-                                vm.curr = 1;
-                                vm.getTableData();
+                                // vm.curr = 1;
+                                // vm.getTableData();
                             }else{
                                 let data = vm.config[vm.sort].submitFile('delete', e);
                                 vm.$http.get(vm.config[vm.sort].onSubmit('delete'), {params: data})
                                 .then((res)=>{
                                     if(res.body.status){
                                         vm.successMsg(vm.$t('Tips[5]'))
-                                        $('.deleteButton span').remove()
+                                        $('.modifyFlag span').remove()
                                         if(vm.sort!='monitoring'){
                                             vm.getTableData();
                                         }
@@ -1176,14 +1213,14 @@ export default {
                             if(vm.sort=='period'||vm.sort=='timedTask'){
                                 if(res.ok){
                                     vm.successMsg(vm.$t('Tips[6]'));
-                                    $('.deleteButton span').remove();
+                                    $('.modifyFlag span').remove();
                                     vm.getTableData();
                                     return;
                                 }
                             }
                             if(res.body.status){
                                 vm.successMsg(vm.$t('Tips[6]'))
-                                $('.deleteButton span').remove();
+                                $('.modifyFlag span').remove();
                                 if(vm.sort=='monitoring'){
                                     return ;
                                 }
@@ -1191,8 +1228,8 @@ export default {
                                 vm.getTableData();
                             }else{
                                 vm.errorMsg(res.body.msg);
-                                if($('.deleteButton').find('span').length==0){
-                                    $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                                if($('.modifyFlag').find('span').length==0){
+                                    $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
                                 }
                             }
                         },(err)=>{
@@ -1204,7 +1241,7 @@ export default {
                     //     vm.$http.post(vm.config[vm.sort].onSubmit('create'), data)
                     //     .then((res)=>{
                     //         vm.successMsg('创建成功')
-                    //         $('.deleteButton span').remove()
+                    //         $('.modifyFlag span').remove()
                     //         console.log(res.body);
                     //     },(err)=>{
                     //         vm.errorMsg(err.body.msg);
@@ -1214,7 +1251,7 @@ export default {
                 vm.updateGroup = [];
                 
             }else{
-                $('.deleteButton span').remove();
+                $('.modifyFlag span').remove();
             }
         },
         // 定时任务的 测试
@@ -1628,8 +1665,8 @@ export default {
                     // });
                 }
                 
-                if($('.deleteButton').find('span').length==0){
-                    $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                if($('.modifyFlag').find('span').length==0){
+                    $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
                 }
 
                 /********************************** */
@@ -1684,6 +1721,9 @@ export default {
                         btn: obj.event=="checkOrder"?[vm.$t("Prompt_btn[0]"),vm.$t("Prompt_btn[2]"), vm.$t("Prompt_btn[1]")]:[vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                         yes: function(index, layero){
                             $('[lay-filter="'+IDDDDDDDDDDDD+'"').click()
+                            if($('.modifyFlag').find('span').length==0){
+                                $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
+                            };
                         },
                         btn2: function(){
                             if(obj.event=='checkOrder'){
@@ -1809,7 +1849,7 @@ export default {
                     let res = vm.config[vm.sort].editTimedNoti(obj.data);
                     openLayer(res, obj);
                 }else if(obj.event == 'contactsMore'){
-                    vm.contactsMore(obj.data);
+                    vm.contactsMore(obj.data, obj.tr);
                 }else if(obj.event.indexOf('setPeriod')>=0){
                     vm.setPeriod(obj);
                 }else if(obj.event == 'selectChange'){
@@ -1963,8 +2003,8 @@ export default {
                                 if(index2!=null){vm.updateGroup.splice(index2, 1)};
                             }
                             vm.updateGroup.push(obj.data);
-                            if($('.deleteButton').find('span').length==0){
-                                $('.deleteButton').append('<span class="layui-badge-dot"></span>');
+                            if($('.modifyFlag').find('span').length==0){
+                                $('.modifyFlag').append('<span class="layui-badge-dot"></span>');
                             }
                             vm.Tdata.forEach((el)=>{
                                 if(obj.data.hasOwnProperty('Id')){
@@ -2074,8 +2114,8 @@ export default {
                         
                     }
                     vm.updateGroup.push(obj.data);
-                    if($('.deleteButton').find('span').length==0){
-                        $('.deleteButton').append('<span class="layui-badge-dot"></span>');
+                    if($('.modifyFlag').find('span').length==0){
+                        $('.modifyFlag').append('<span class="layui-badge-dot"></span>');
                     }
                     let index2;
                     $.each(vm.Tdata, (i,e)=>{
@@ -2365,7 +2405,6 @@ export default {
         },
         // 分页函数
         tablepage(count){
-            // debugger;
             let vm = this;
             let opts = {
                 elem: this.laypageId,
@@ -2381,11 +2420,11 @@ export default {
                 jump: function(obj, first){
                     if(!first){
                         vm.curr = obj.curr;
-                        vm.getTableData(obj.curr, vm.curParams);
+                        vm.sort=='devices'?vm.getTableData(obj.curr, vm.curParams):vm.getTableData(obj.curr);
                     }
                 }
             }
-            this.$nextTick(function(){
+            vm.$nextTick(function(){
                 layui.laypage.render(opts);
             });
         },
@@ -2586,8 +2625,8 @@ export default {
                                     layui.table.reload(vm.sort, {
                                         data: vm.Tdata
                                     });
-                                    if($('.deleteButton').find('span').length==0){
-                                        $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                                    if($('.modifyFlag').find('span').length==0){
+                                        $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
                                     }
                                     layui.layer.close(index);
                                     return;
@@ -2761,8 +2800,8 @@ export default {
                     layui.table.reload(vm.sort,{
                         data: vm.Tdata
                     });
-                    if($('.deleteButton').find('span').length==0){
-                        $('<span class="layui-badge-dot"></span>').appendTo('.deleteButton')
+                    if($('.modifyFlag').find('span').length==0){
+                        $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
                     };
                     vm.batchTemp.temp = [];
                     layer.close(index)
@@ -2786,7 +2825,7 @@ export default {
             })
         },
         // 人员管理——联系人 更多参数设置
-        contactsMore(d){
+        contactsMore(d, cell){
             let vm = this, dom, code0='', code1='', i,j, k,l;
             this.currentContactMore = d;
             for (i = 0; i < vm.hostBlist.length; i++) {
@@ -2882,13 +2921,30 @@ export default {
                             }else{
                                 vm.updateGroup.push(d);
                             }
+                            vm.Tdata.forEach((e, i)=>{
+                                if(d.hasOwnProperty("Id")){
+                                    if(e.Id==d.Id){
+                                        vm.Tdata.splice(i, 1, d)
+                                    }else{
+                                        vm.Tdata.push(d);
+                                    }
+                                }
+                            });
+                            layui.table.reload(vm.sort, {
+                                data: vm.Tdata
+                            });
                             layer.close(index);
                             return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
                         });
                     });
                 },
                 yes: function(index, layero){
+                  
                     $('[lay-filter="contactsMore_submit"]').click();
+                    if($('.modifyFlag').find('span').length==0){
+                        $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
+                    };
+                    $(cell).addClass('change')
                 },
                 btn2: function(index, layero) {
                     layer.close(index);
@@ -3168,7 +3224,7 @@ body
         cursor pointer;
         font-size 18px;
         margin-left 5px;
-    
+        
     .errorMsg 
         box-shadow none
         border-radius 10px
@@ -3356,6 +3412,18 @@ body
             background-color #1E9FFF
 
 #table
+    .operateBtnList
+        display flex
+        .device_filter
+            form
+                display flex
+        .layui-form-item
+            display flex
+            .layui-form-label
+                min-width 100px
+                text-align center
+            .layui-input-inline
+                width auto
     .layui-table-body 
         overflow-y auto
         overflow-x hidden
@@ -3389,7 +3457,10 @@ body
     background-color #54b5ff
 .layui-form-radioed>i
     color: #54b5ff;
-
+.layui-form-select dl dd.layui-this {
+    background-color: #1E9FFF;
+    color: #fff;
+}
 
 .batch
     background-color #83c831

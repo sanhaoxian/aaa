@@ -202,7 +202,7 @@
                                     <table class="table-show table-panel text-center">
                                         <thead>
                                             <tr>
-                                                <th><label><input type="checkbox">{{$t('mMore.energyTab.son_table_th[0]')}}</label></th>
+                                                <th><label><input @click="allSel($event)" type="checkbox">{{$t('mMore.energyTab.son_table_th[0]')}}</label></th>
                                                 <th>{{$t('mMore.energyTab.son_table_th[1]')}}</th>
                                                 <th>{{$t('mMore.energyTab.son_table_th[2]')}}</th>
                                                 <th>{{$t('mMore.energyTab.son_table_th[3]')}}</th>
@@ -1055,6 +1055,12 @@ export default {
                 },(err)=>{
                     vm.errorMsg(err.body.msg)
                 });
+            }
+        },
+        allSel(el) {
+            let check_box_list = $(el.target).parent().parent().parent().parent().next().find("input[type='checkbox']");
+            for (let i=0; i < check_box_list.length; i++){
+                check_box_list[i].checked = !check_box_list[i].checked;
             }
         }
     },
