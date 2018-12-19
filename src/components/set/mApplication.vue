@@ -33,9 +33,15 @@ export default{
         }
     },
     mounted() {
+        let vm = this;
         layui.use('element', function(){
             layui.element.render('demo')
         })
+        layui.element.on('tab(setting-devices)', function(data){
+            if(data.index=='0'){
+                vm.$router.push({path: '/setting'})
+            }
+        });
     },
     methods: {
         execute() {

@@ -857,10 +857,10 @@ export default  {
           e.name=='repwd'? post.repwd=e.value: '',
           e.name=='Type'? post.type=e.value: '',
           e.name=='userName'? post.user=e.value: ''
-          if(e.name=='host'){
+          if(e.name.indexOf('host')>=0){
             post.hostgroups.push({id: e.value})
           };
-          if(e.name=='contact'){
+          if(e.name.indexOf('contact')>=0){
             post.contactgroups.push({id: e.value})
           } 
         })
@@ -1118,6 +1118,8 @@ export default  {
     },
     submitFile(type, data){
       if(type=='create'){
+        data.error = false;
+        data.errMsg = "正常"
         if(data.ContactGroups.length>0){
           let ContactGroups = [];
           $.each(data.ContactGroups,(i,e)=>{
@@ -1133,10 +1135,7 @@ export default  {
         if(data.HostNotificationCommands.length<=0 || data.ServiceNotificationCommands.length<=0){
             data.error = true;
             data.errMsg = "更多参数中不能为空"
-        }else{
-            data.error = false;
-            data.errMsg = "正常"
-        };
+        }
         return data;
       }
       if(type=="delete"){

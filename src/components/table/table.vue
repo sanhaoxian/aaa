@@ -63,9 +63,9 @@
                                 <div class="layui-input-inline">
                                 <select name="class">
                                     <option value=""></option>
-                                    <option value="Name">设备名称</option>
-                                    <option value="driver">驱动</option>
-                                    <option value="IP">IP</option>
+                                    <option value="name">设备名称</option>
+                                    <option value="driver">设备驱动</option>
+                                    <option value="ip">设备IP</option>
                                 </select>
                                 </div>
                             </div>
@@ -193,7 +193,7 @@
                         <div class="layui-form-item hostAll" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[2]')}}</label>
                             <div class="layui-input-block">
-                                <input type="checkbox" name="host[All]" value="0" :title="$t('Table.Box.Add.user.option[0]')" lay-skin="primary" lay-filter="selectAll">
+                                <input type="checkbox" value="0" :title="$t('Table.Box.Add.user.option[0]')" lay-skin="primary" lay-filter="selectAll">
                                 <ul>
                                     <li v-for="it in hostgroup" :key="it.Id">
                                         <input type="checkbox" :value="it.Id" :title="it.Name" :name="'host'+it.Id" lay-skin="primary">
@@ -204,7 +204,7 @@
                         <div class="layui-form-item contactAll" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[3]')}}</label>
                             <div class="layui-input-block" >
-                                <input type="checkbox" name="contact[All]" value="0" :title="$t('Table.Box.Add.user.option[1]')" lay-skin="primary" lay-filter="selectAll">
+                                <input type="checkbox" value="0" :title="$t('Table.Box.Add.user.option[1]')" lay-skin="primary" lay-filter="selectAll">
                                 <ul>
                                     <li v-for="it in contactsList" :key="it.Id">
                                         <input type="checkbox" :value="it.Id" :title="it.Name" :name="'contact'+it.Id" lay-skin="primary">
@@ -560,7 +560,7 @@
     </div>
 </template>
 <script>
-import Common from '../../../static/js/common.js'
+import Common from './common.js'
 let {form}=layui
 export default {
     props:['sort', 'contactEmail'],
@@ -649,19 +649,16 @@ export default {
                 WorkValue: null,
             },
             compareVisible: false,
-            device_filter: false
+            device_filter: false,
+            oldTab: 0
         }
     },
     mounted() {
         // let vm = this;
-        layui.use(["element", "layer", "table", "laypage", "form", "laydate"], () => {
-            layui.element.on('tab(setting-devices)', function(data){
-                if(data.index=='0'){
-                    vm.$router.push({path: '/setting'})
-                }
-            });
-        });
         window.vm = this;
+        layui.use(["element", "layer", "table", "laypage", "form", "laydate"], () => {
+            
+        });
         this.init();
         if(this.sort=='devices'){ 
             window.app=this; 
@@ -706,6 +703,9 @@ export default {
             /*********************************/
             this.laypageId += Math.floor(Math.random()*100);
             this.getHosts();
+        },
+        clear() {
+            this.updateGroup = []
         },
         filter_device() {
             let vm = this;
@@ -972,7 +972,7 @@ export default {
                             return 
                         }
                         if(!res.feedback.status){ vm.errorMsg(res.feedback.msg); return false; }
-                        
+                        console.log(res);
                     }
                     // 统一向后台发送数据，并且重新刷新表格数据。
                     if(vm.sort== 'contacts'){
@@ -1135,9 +1135,13 @@ export default {
         },
         // 更新机房，保存机房数据
         updated() {
-            let vm = this; 
+            let vm = this;
+            console.log();
+            // if($('.modifyFlag span').length<=0){
+            //     return false;
+            // }
             if(vm.updateGroup.length!=0){
-
+                let err = false;
                 $.each(vm.updateGroup, (i, e)=>{
                     if(e.edit=='add'){
                         let data;
@@ -1145,12 +1149,12 @@ export default {
                             data = vm.config[vm.sort].submitFile('create', e);
                             if(data.error){
                                 vm.errorMsg(data.errMsg)
-                                return;
+                                err = true;
+                                return false;
                             }
                         }else{
                             data = e
                         }
-                        
                         vm.$http.post(vm.config[vm.sort].onSubmit('create'), data)
                         .then((res)=>{
                             if(res.body.status!=undefined){
@@ -1248,8 +1252,7 @@ export default {
                     //     });
                     // }
                 });
-                vm.updateGroup = [];
-                
+                if(!err){vm.updateGroup = [];}
             }else{
                 $('.modifyFlag span').remove();
             }
@@ -1458,7 +1461,6 @@ export default {
                                 for(let it of vm.currentObj[0].ContactGroups){
                                     initValue['contact'+it.Id] = true
                                 }
-                                console.log(initValue);
                                 layui.form.val("modityUserForm", initValue)
 
                                 // 这里是监听是否为某个角色
@@ -1527,7 +1529,7 @@ export default {
                             vm.$http.post(vm.config[vm.sort].onSubmit('update'), data)
                             .then((res)=>{
                                 if(res.body.status){
-                                    vm.successMsg(res.body.msg);
+                                    !renewPwd && vm.successMsg(res.body.msg)
                                     vm.getTableData();
                                 }else{
                                     vm.errorMsg(res.body.msg);
@@ -2908,27 +2910,34 @@ export default {
                                 return false;
                             }
                             d.edit=='add'?'':d.edit='update';
-                           
+                            // console.log(vm.updateGroup);
                             if(vm.updateGroup.length>0){
                                 let index2=null;
                                 $.each(vm.updateGroup, (i,e)=>{
-                                    if(e.Id===d.Id){
-                                        index2=i
+                                    if(e.hasOwnProperty("Id")){
+                                        if(e.Id==d.Id){
+                                            index2=i
+                                        }
+                                    }else if(e.hasOwnProperty('id')){
+                                        if(e.id==d.id){
+                                            index2=i
+                                        }
                                     }
                                 })
                                 if(index2!=null){vm.updateGroup.splice(index2, 1)};
-                                vm.updateGroup.push(d);
-                            }else{
-                                vm.updateGroup.push(d);
                             }
+                            vm.updateGroup.push(d);
                             vm.Tdata.forEach((e, i)=>{
                                 if(d.hasOwnProperty("Id")){
                                     if(e.Id==d.Id){
                                         vm.Tdata.splice(i, 1, d)
-                                    }else{
-                                        vm.Tdata.push(d);
+                                    }
+                                }else if(d.hasOwnProperty('id')){
+                                    if(e.id==d.id){
+                                        vm.Tdata.splice(i, 1, d)
                                     }
                                 }
+                                
                             });
                             layui.table.reload(vm.sort, {
                                 data: vm.Tdata
@@ -3214,6 +3223,10 @@ export default {
         }
         /*************************************************************************/
     },
+    deactivated() {
+        console.log("132");
+        vm.updateGroup = []
+    }
 }
 
 </script>

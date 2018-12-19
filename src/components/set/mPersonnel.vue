@@ -34,6 +34,7 @@ export default{
         }
     },
     mounted() {
+        let vm = this;
         this.getUser();
         this.$http.get('/config/rest/Resources')
         .then((res)=>{
@@ -41,6 +42,13 @@ export default{
             res.body[0].User3 = res.body[0].User3 == null || res.body[0].User2 == undefined ? "" : res.body[0].User3;
             res.body[0].User4 = res.body[0].User4 == null || res.body[0].User2 == undefined ? "" : res.body[0].User4;
             this.email = res.body[0];
+        });
+        layui.element.on('tab(setting-devices)', function(data){
+            ['user', 'contactGroup', 'contacts'].forEach(i=>vm.$refs[i].clear());
+                $('.modifyFlag span').remove();
+            if(data.index=='0'){
+                vm.$router.push({path: '/setting'})
+            }
         });
     },
     methods: {

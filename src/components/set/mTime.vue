@@ -50,7 +50,15 @@ export default{
         }
     },
     mounted() {
+        let vm = this;
         this.init();
+        layui.element.on('tab(setting-devices)', function(data){
+            $('.modifyFlag span').remove();
+            ['period'].forEach(i=>vm.$refs[i].clear());
+            if(data.index=='0'){
+                vm.$router.push({path: '/setting'})
+            }
+        });
     },
     methods: {
         // 进入后门

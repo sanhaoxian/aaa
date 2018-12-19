@@ -34,21 +34,19 @@ export default {
     data() {
         return {
             moTab: false,
-            curr_tab: 1
         };
     },
     mounted() {
         let vm = this;
-        this.gethost();
-        this.getDevices();
-        layui.element.on('tab(setting-devices)', (data)=>{
-            if(data.index==1){
-                vm.curr_tab = data.index;
-            }
+        layui.element.on('tab(setting-devices)', function(data){
+            $('.modifyFlag span').remove();
+            ['hostTab', 'devicesTab'].forEach(i=>vm.$refs[i].clear());
             if(data.index=='0'){
                 vm.$router.push({path: '/setting'})
             }
-        })
+        });
+        this.gethost();
+        this.getDevices();
     },
     methods: {
         addMonitoringTab(params) {
