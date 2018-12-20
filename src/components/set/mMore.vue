@@ -748,13 +748,11 @@ export default {
                         }
                     }
                 }
-                // console.log("旧的", vm.oldpue);
                 vm.$nextTick(()=>{
                     vm.oldpue = x.data.items;
                     vm.refreshService();
                 });
-                // vm.newpue = [];
-                
+                vm.newpue = [];
             });
         },
         //添加功率项

@@ -137,7 +137,7 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[1]')}}</label>
                     <div class="layui-input-block">
-                        <button class="layui-btn layui-btn-disabled" disabled style="backgroundColor: #273fa5; color: #ccc">{{batchTemp.temp[0]}}</button>
+                        <button class="layui-btn layui-btn-disabled btn-warning" disabled>{{batchTemp.temp[0]}}</button>
                     </div>
                 </div>
                 <div class="layui-form-item">
@@ -1531,6 +1531,7 @@ export default {
                                 if(res.body.status){
                                     !renewPwd && vm.successMsg(res.body.msg)
                                     vm.getTableData();
+                                    layer.close(index);
                                 }else{
                                     vm.errorMsg(res.body.msg);
                                 }
@@ -1546,6 +1547,7 @@ export default {
                                         if(res.body.status){
                                             vm.successMsg(res.body.msg);
                                             vm.getTableData();
+                                            layer.close(index);
                                         }else{
                                             vm.errorMsg(res.body.msg);
                                         }
@@ -1555,7 +1557,7 @@ export default {
                                         vm.errorMsg(err.body.msg);
                                         $('#userEditBox').find('form')[0].reset();
                                     });
-                                    layer.close(index);
+                                    // layer.close(index);
                                 }
                             },(err)=>{
                                 vm.errorMsg(err.body.msg);
@@ -1577,7 +1579,7 @@ export default {
                                 vm.errorMsg(err.body.msg)
                             });
                         }
-                        layer.close(index);
+                        
                     },
                     end() {
                         if(vm.sort=='leftMenu'){
@@ -1709,7 +1711,6 @@ export default {
                                 let mapBooleab=[];
                                 layero.find('input[value="true"]').each((i,el)=> $(el).attr('value') === 'true' && mapBooleab.push($(el).attr('name')))
                                 mapBooleab.forEach(key=>!field.hasOwnProperty(key)&&(field[key]=false))
-                                console.log("提交的数据",data);
                                 // 通过区分函数，实现不同的弹框功能
                                 vm.distinguish(obj, field);
                                 layui.table.reload(vm.sort, {
@@ -1856,7 +1857,9 @@ export default {
                     vm.setPeriod(obj);
                 }else if(obj.event == 'selectChange'){
                     // 监听下拉选择框的事件
+                    
                     layui.form.on('select(sel)', function(data){
+                        
                         if(obj.data[data.elem.name]==data.value){
                             return;
                         }else{
@@ -1892,10 +1895,14 @@ export default {
                                 }
                             })
                             vm.Tdata.splice(index2, 1, obj.data)
-                            vm.renderTable(vm.Tdata);
-
+                            // vm.renderTable(vm.Tdata);
+                            
+                            layui.table.reload(vm.sort,{
+                                data: vm.Tdata
+                            })
                             // 加入到更新数组
                             obj.data.edit = 'update'
+                            $(obj.tr).addClass('change')
                             vm.updateGroup.push(obj.data);
                             obj = '';
                         }
@@ -2010,7 +2017,6 @@ export default {
                             }
                             vm.Tdata.forEach((el)=>{
                                 if(obj.data.hasOwnProperty('Id')){
-                                    console.log(el.Id == obj.data.Id);
                                     if(el.Id == obj.data.Id){
                                         for(let key in obj.data){
                                             el[key] = obj.data[key];
@@ -2024,7 +2030,10 @@ export default {
                                     }
                                 }
                             })
-                            vm.renderTable(vm.Tdata);
+                            layui.table.reload(vm.sort,{
+                                data: vm.Tdata
+                            })
+                            $(obj.tr).addClass('change')
                             layer.close(index);
                         },
                         end() {
@@ -2033,6 +2042,7 @@ export default {
                     }
                     layer.open(opts);
                 }else if(obj.event == 'timedTaskOrder'){
+                    let cell = obj.tr;
                     $.each(obj.data.actions, (i, e)=>{
                         let a = vm.timedTaskOrder.find(item=>{if(item.Id===e.Id){item.LAY_CHECKED = true}});
                     })
@@ -2057,27 +2067,27 @@ export default {
                             });
                         },
                         yes: function(index, layero){
-                            let orderChecked = layui.table.checkStatus('timedTaskOrderBox');
+                            let orderChecked = layui.table.checkStatus('timedTaskOrderBox'), index2;
                             obj.data.actions = orderChecked.data;
                             obj.update({
                                 actions: orderChecked.data
                             });
                             
-                            vm.Tdata.forEach((el)=>{
+                            $.each(vm.Tdata, (j, k)=>{
                                 if(obj.data.hasOwnProperty('Id')){
-                                    if(el.Id == obj.data.Id){
-                                        el.actions = obj.data.actions
+                                    if(obj.data.Id==k.Id){
+                                        index2 = j;
                                     }
                                 }else{
-                                    if(el.id == obj.data.id){
-                                        el.actions = obj.data.actions
+                                    if(obj.data.id==k.id){
+                                        index2 = j;
                                     }
                                 }
-                            })
-                            vm.renderTable(vm.Tdata);
-                            layui.table.reload(vm.sort,{
-                                data: vm.Tdata
-                            })
+                                
+                            });
+                            if(index2>=0){
+                                vm.Tdata.splice(index2, 1, obj.data);
+                            }
 
                             obj.data.edit=='add'?'':obj.data.edit = 'update';
 
@@ -2090,7 +2100,12 @@ export default {
                                 })
                                 if(index2!=null){vm.updateGroup.splice(index2, 1)};
                                 
-                            }vm.updateGroup.push(obj.data);
+                            }
+                            $(cell).addClass('change')
+                            vm.updateGroup.push(obj.data);
+                            if($('.modifyFlag').find('span').length==0){
+                                $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
+                            }
                             layer.close(index);
                         },
                         end(){
@@ -2337,6 +2352,15 @@ export default {
                     }
                 }
                 obj.data.edit = 'update';
+                let index2;
+                $.each(vm.Tdata, (i,e)=>{
+                    if(e.Id==obj.data.Id){
+                        return index2 = i
+                    }
+                })
+                vm.Tdata.splice(index2, 1, obj.data)
+                vm.renderTable(vm.Tdata);
+                
                 if(vm.updateGroup.length>0){
                     let index2=null;
                     $.each(vm.updateGroup, (i,e)=>{
@@ -2344,10 +2368,7 @@ export default {
                             index2=i
                         }
                     })
-                    if(index2!=null){vm.updateGroup.splice(index2, 1)};
-                    vm.updateGroup.push(obj.data);
-                }else{
-                    vm.updateGroup.push(obj.data);
+                    if(index2!=null){vm.updateGroup.splice(index2, 1, obj.data)};
                 }
             }else if(obj.event == 'timedNoti'){
                 for(let key in data){
@@ -2751,7 +2772,7 @@ export default {
             let tem = this.batchTemp.temp.splice(index, 1);
             this.batchTemp.temp.unshift(tem[0]);
         },
-        // 设备管理——批量管理弹框功能
+        // z
         batch(){
             let vm = this, content;
             let data = this.currentObj;
@@ -2769,7 +2790,7 @@ export default {
                 type: 1,
                 title: vm.$t('Table.Box.Batch.title'),
                 content: content,
-                area: ['546px', '300px'],
+                area: ['546px', '319px'],
                 btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
                 skin: 'set-Table',
                 yes: function(index, layero) {
@@ -3396,11 +3417,17 @@ body
         
     .layui-layer-btn .layui-layer-btn0
         color #fff
-        background-color #82d642
-    .layui-layer-btn a
-        color #fff
         background-color #f86868
-        border #f86868
+    .layui-layer-btn
+        display flex
+        justify-content space-around
+        a
+            display inline-block
+            color #fff
+            background-color #82d642
+            border #f86868
+            padding 0 26px
+            font-size 16px
 
     .layui-form-label
         width 100px
@@ -3414,6 +3441,10 @@ body
         min-width 120px
     
     #batchBox, #batchBox2
+        padding 12px
+        overflow hidden
+        .layui-form-item
+            margin 15px auto 0 0
         .layui-btn
             width 100px
             margin 5px
@@ -3423,10 +3454,28 @@ body
             overflow hidden
             text-overflow ellipsis 
             background-color #1E9FFF
+            border-color transparent
+            border-bottom-color #0960ab!important
+            background-color #4288c5
+            background-image linear-gradient(180deg,#488fcd,#3a7db8)
+            background-repeat repeat-x
+            :hover
+                border #0960ab!important
+        .layui-layer-btn
+            padding-top 8px
+        .btn-warning
+            border-color transparent
+            border-bottom-color #cf370c!important
+            background-color #ff4e00
+            background-repeat repeat-x
+            background-image linear-gradient(180deg,#f50,#f40)
 
 #table
     .operateBtnList
         display flex
+        button
+            box-shadow 3px 3px 15px rgba(0, 0, 0, 0.2) inset, -3px -3px 15px rgba(0, 0, 0, 0.2) inset;
+            border-radius 6px;
         .device_filter
             form
                 display flex
