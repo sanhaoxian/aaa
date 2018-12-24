@@ -83,7 +83,7 @@
         </div>
         <div :id="laypageId" class="layui_page"></div>
         <!-- 设备组 新增 穿梭框 -->
-        <div v-parent="'body'" v-if="sort=='devices'" class="addDeviceBox" hidden>
+        <div v-parent="'body'" v-if="sort=='devices'" class="addDeviceBox layui-form " lay-filter="addDeviceBox" hidden>
             <div class="A">
                 <ul>
                     <li v-for='sorts01 in sorts' :key="sorts01.Name">
@@ -96,7 +96,7 @@
                                         <div @click="spread($event)"> <span></span>{{sorts03.Name}}</div>
                                         <ul>
                                             <li v-for='sorts04 in sorts03.sorts' :key="sorts04.Name">
-                                                <label><input type="checkbox" :sortId="sorts04[0]">{{sorts04[1]}}</label>
+                                                <input type="checkbox" lay-skin="primary" class="tit" :sortId="sorts04[0]" :title="sorts04[1]">
                                             </li>
                                         </ul>
                                     </li>
@@ -114,7 +114,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th><label><input type="checkbox" onclick="selectAll(event)"></label></th>
+                            <th><input type="checkbox" lay-skin="primary" lay-filter="selectAll"></th>
                             <th>{{$t('Table.Box.Add.device.table_th[0]')}}</th>
                             <th>{{$t('Table.Box.Add.device.table_th[1]')}}</th>
                             <th>{{$t('Table.Box.Add.device.table_th[2]')}}</th>
@@ -122,7 +122,7 @@
                             <th>{{$t('Table.Box.Add.device.table_th[4]')}}</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody ></tbody>
                 </table>
             </div>
         </div>
@@ -769,6 +769,35 @@ export default {
                         if(vm.sort=='period' || vm.sort=='ports'){
                             vm.Tdata = res.body;
                             vm.renderTable(res.body);
+                            if(vm.sort=='period'){
+                                this.$nextTick(()=>{
+                                    $('td div.layui-table-cell').bind('mouseover', (e)=>{
+                                        let value = $(e.target)[0].innerText
+                                        if(value==""){return false}
+                                        $(e.target).parent().css('position', 'relative')
+                                   
+                                        let top = $(e.target).offset().top;
+                                        let left = $(e.target).offset().left;
+                                        let offsetLeft = $(e.target).width()/2;
+                                        let tips = `<div style="z-index: 1000000000; 
+                                            background: #ccd0d4;
+                                            color: #aaa;
+                                            border: 1px solid #fff;
+                                            border-radius: 4px;
+                                            padding: 5px;
+                                            box-shadow:  1px 1px 3px #ccd0d4, 0 0 0 rgba(0, 0, 0, 0.8), 1px 1px 4px #fff;
+                                            position: absolute; 
+                                            top: ${ top-30 }px; 
+                                            left:${ left+offsetLeft }px;" 
+                                            class="periodTips">${value}</div>`
+                                        $('body').css('position', 'relative');
+                                        $('body').append(tips);
+                                    });
+                                    $('td div.layui-table-cell').bind('mouseout', (e)=>{
+                                        $('.periodTips').remove()
+                                    })
+                                });
+                            }
                         }else{
                             vm.errorMsg(res.body.msg)
                         }
@@ -864,6 +893,7 @@ export default {
                 content: con,
                 skin: 'set-Table',
                 btn: btn,
+                shade:[0.5, '#000'],
                 success: function(layero, index){
                     layui.form.render();
                     if(vm.sort=="user"){
@@ -1409,6 +1439,7 @@ export default {
                             shadeClose: true,
                             content: con,
                             skin: 'set-Table',
+                            shade:[0.5, '#000'],
                             btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                             success: function(){
                                 vm.$nextTick(()=>{
@@ -1450,6 +1481,7 @@ export default {
                     content: con,
                     btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                     skin: 'set-Table',
+                    shade:[0.5, '#000'],
                     success: function(){
                         if(vm.sort=='user'){
                             vm.$nextTick(function(){
@@ -1682,17 +1714,18 @@ export default {
             /* 监听设备组表格点击事件 并弹出表单框的类型 eg:设置——联系人组 */
             layui.table.on('tool('+vm.sort+')', function(obj){
                 // let status = false
-                function openLayer(res, obj){
+                function openLayer(res, obj, shin){
                     let IDDDDDDDDDDDD=new Date().valueOf()
                     layui.layer.open({
                         type: 1,
                         title: res[0],
                         area: '550px',
+                        shade: [0.5, '#000'],
                         shadeClose: false,
                         content: `
                             <div class="layui-form"><form>${res[1]}<button hidden lay-submit lay-filter="${IDDDDDDDDDDDD}">提交</button> </form></div>
                         `,
-                        skin: 'set-Table',
+                        skin: 'set-Table'+ ' '+shin,
                         success: function(layero,index){
                             layui.form.render();
                             if(vm.sort=="contacts"){
@@ -1702,6 +1735,13 @@ export default {
                                     format: 'HH:mm'
                                 });
                             }
+                            layui.form.on('checkbox(allChoose)', function(data){
+                                var child = $(data.elem).nextAll('input[type="checkbox"]');
+                                child.each(function(index, item){
+                                    item.checked = data.elem.checked;
+                                });
+                                layui.form.render('checkbox');
+                            });
                             if(obj.event=="checkOrder"){
                                 layero.find('.layui-layer-btn1').addClass('layer_checkOrder_addBtn');
                                 layero.find('.layui-layer-btn1').css('background-color', '#007bbb');
@@ -1739,7 +1779,7 @@ export default {
                 // Pretreatment预处理
                 if(obj.event == 'setContactgroups'){
                     let res = vm.config[vm.sort].editContactGroups(obj.data, vm.contactsList);
-                    openLayer(res, obj);
+                    openLayer(res, obj, 'setContactgroups');
                 }else if(obj.event == 'deviceMore'){
                     let res = vm.config[vm.sort].editMore(obj.data, vm.timeSlot, vm.timeBase);
                     openLayer(res, obj);
@@ -1781,7 +1821,7 @@ export default {
                                         <div style="margin: 5px">
                                             <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters${index+1}' lay-skin='primary' value='' title='' />
                                         </div>
-                                        <i class="layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
+                                        <i class="layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                                     </div>
                                 </div>
                             `
@@ -1916,6 +1956,7 @@ export default {
                         btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                         content: $('#timedTaskIds'),
                         skin: 'set-Table',
+                        shade:[0.5, '#000'],
                         success: function (layero, index){
                             // 初始化选项
                             let initOpts={
@@ -2053,6 +2094,7 @@ export default {
                         shadeClose: true,
                         btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
                         skin: 'set-Table',
+                        shade:[0.5, '#000'],
                         content: `<table id="timedTaskOrderBox"></table>`,
                         success: function(){
                             layui.table.render({
@@ -2178,11 +2220,14 @@ export default {
             let vm = this;
             if( obj.event == 'setContactgroups' ){
                 if(isEmptyObject(data)){
-                    alert("至少勾选一个联系人组")
+                    vm.errorMsg("至少勾选一个联系人组")
+                    return false;
                 }else{
                     let contact = [];
                     for(let key in data){
-                        contact.push({Name: key, Id: data[key]});
+                        if(key!="allCheckBox"){
+                            contact.push({Name: key, Id: data[key]});
+                        }
                     };
                     if(vm.sort=='contacts'){
                         $.each(vm.Tdata, (i,e)=>{
@@ -2600,6 +2645,19 @@ export default {
                 btn:[vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
                 shadeClose: true, 
                 content: $('.addDeviceBox'),
+                shade:[0.5, '#000'],
+                success: function(){
+                    vm.$nextTick(()=>{
+                        layui.form.on('checkbox(selectAll)', function(data){
+                            var child = $(data.elem).parent().parent().parent().nextAll().find('input[type="checkbox"]');
+                            child.each(function(index, item){
+                                item.checked = data.elem.checked;
+                            });
+                            layui.form.render('checkbox');
+                        });
+                        layui.form.render('checkbox');
+                    });
+                },
                 yes: function(index, layero) {
                     var bkb = $(".layui-layer-content .C tbody tr"), i, j, k, l, code, A, B, C, flag = true;
                     if(bkb.length<=0){
@@ -2680,6 +2738,7 @@ export default {
         aDevice() {
             let vm = this;
             var bkb = $(".A input[type='checkbox']"), i = 0, Ediost = [], one, two, code = '', code2 = '';
+            
             for (; i < bkb.length; i++) {
                 if (bkb[i].checked) {
                     one = parseInt($(bkb[i]).attr("sortid"));
@@ -2694,7 +2753,7 @@ export default {
                     code2 += '<option value=' + vm.hostgroup[i].Id + '>' + vm.hostgroup[i].Name + '</option>';
                 }
                 for (i = 0; i < Ediost.length; i++) {
-                    code += '<tr><td hostId=' + vm.cell[Ediost[i][0]].Id + ' mark='+Ediost[i][0]+'><input type="checkbox"></td><td>'
+                    code += '<tr><td hostId=' + vm.cell[Ediost[i][0]].Id + ' mark='+Ediost[i][0]+'><input type="checkbox" lay-skin="primary"></td><td>'
                         + Ediost[i][1] + '</td><td><input type="number" class="inputNumber" value="1" min="1"></td>';
                     if (vm.cell[Ediost[i][0]].HostnameRelatedCommands.length > 0) {
                         code += '<td><span class="glyphicon glyphicon-edit" onclick="app.selNotification(this,' + Ediost[i][0] + ')"></span></td>';
@@ -2705,10 +2764,11 @@ export default {
                         '<td><span class="glyphicon glyphicon-edit" onclick="app.selContactgroup(event)"></span></td></tr>';
                 }
             $(".C tbody").append(code);
+            layui.form.render()
         },
         // 设备管理——穿梭框向左移除设备
         rDevice() {
-            var bkb = $(".C tbody input[type='checkbox']"), i = 0,j,mkb=$(".A label input"),b=[];
+            var bkb = $(".C tbody input[type='checkbox']"), i = 0,j,mkb=$(".A .tit"),b=[];
             for (; i < bkb.length; i++) {
                 if (bkb[i].checked){
                     b.push($(bkb[i]).parent().attr("mark"));
@@ -2722,16 +2782,18 @@ export default {
                     }
                 }
             }
+            layui.form.render();
         },
         // 设备管理——选取联系人组
         selContactgroup(mc) {
-            var vm = this, i = 0, j, txt = Common.zGetNode(mc, "TD").textContent.split("，") || "", inHTML = "<ul class='Z1'>";
+            var vm = this, i = 0, j, txt = Common.zGetNode(mc, "TD").textContent.split("，") || "", inHTML = "<ul class='Z1 layui-form'>";
+            inHTML += `<li><input type="checkbox" lay-skin="primary" name="allCheckBox" lay-filter="allChoose" title="全选"></li> <hr>`
             for (; i < vm.contactsList.length; i++) {
-                inHTML += '<li><label><input type="checkbox" ctsid="' + vm.contactsList[i].Id + '" ';
+                inHTML += `<li><input type="checkbox" name="${vm.contactsList[i].Id}" lay-skin="primary" title="${vm.contactsList[i].Name}" ctsid="${vm.contactsList[i].Id}" `;
                 for (j = 0; j < txt.length; j++) {
                     inHTML += txt[j] == vm.contactsList[i].Name ? 'checked' : "";
                 }
-                inHTML += '>' + vm.contactsList[i].Name + '</label></li>';
+                inHTML += '></li>';
             }
             inHTML += '</ul>';
             layui.layer.open({
@@ -2742,13 +2804,27 @@ export default {
                 content: inHTML,
                 btn:[vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
                 skin: 'set-Table',
-
+                shade:[0.5, '#000'],
+                success() {
+                    vm.$nextTick(()=>{
+                        layui.form.on('checkbox(allChoose)', function(data){
+                            var child = $(data.elem).parent().nextAll().find('input[type="checkbox"]');
+                            child.each(function(index, item){
+                                item.checked = data.elem.checked;
+                            });
+                            layui.form.render('checkbox');
+                        });
+                        layui.form.render();
+                    });
+                },
                 yes: function(index, layer) {
                     var bkb = $(".Z1 input[type='checkbox']"), i = 0, code2 = [], code3 = '', code = [];
                     for (; i < bkb.length; i++) {
-                        if (bkb[i].checked) {
-                            code.push($(bkb[i]).attr("ctsid"));
-                            code2.push($(bkb[i]).parent().text());
+                        if(bkb[i].name!="allCheckBox"){
+                            if (bkb[i].checked) {
+                                code.push($(bkb[i]).attr("ctsid"));
+                                code2.push($(bkb[i]).parent().text());
+                            }
                         }
                     }
                     if (code2.length > 0) {
@@ -2793,6 +2869,7 @@ export default {
                 area: ['546px', '319px'],
                 btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
                 skin: 'set-Table',
+                shade:[0.5, '#000'],
                 yes: function(index, layero) {
                     let data = layero.find('input').serializeArray();
                     let refer = null
@@ -2880,6 +2957,7 @@ export default {
                 content: $('#contactsMore'),
                 btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
                 skin: 'set-Table',
+                shade:[0.5, '#000'],
                 success: function(layero, index){
                     layui.form.render();
                     vm.$nextTick(()=>{
@@ -3009,13 +3087,13 @@ export default {
                         t4 = e.split('-')[1].split(':')[1];
                         htm = `
                         <div class="layui-form-item">
-                            <div class="layui-inline" style="display: flex; justify-content: space-around; align-items: center">
-                                <input type="number" min="0" max="24" value="${t1}">
+                            <div class="layui-inline" style="display: flex; justify-content: space-around; align-items: center;">
+                                <input type="number" min="0" max="24" value="${t1}">：
                                 <input type="number" min="0" max="60" value="${t2}">
                                 ${vm.$t('Table.Box.Cell.Period.other')}
-                                <input type="number" min="0" max="24" value="${t3}">
+                                <input type="number" min="0" max="24" value="${t3}">：
                                 <input type="number" min="0" max="60" value="${t4}">
-                                <span class="deletePeriodRange"> <i class="layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;" ></i> </span>
+                                <span class="deletePeriodRange"> <i class="layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;" ></i> </span>
                             </div>
                         </div>
                         `
@@ -3027,12 +3105,12 @@ export default {
                 let temp = `
                 <div class="layui-form-item">
                     <div class="layui-inline" style="display: flex; justify-content: space-around; align-items: center">
-                        <input type="number" min="0" max="24" value="00">
+                        <input type="number" min="0" max="24" value="00">：
                         <input type="number" min="0" max="60" value="00">
                         ${vm.$t('Table.Box.Cell.Period.other')}
-                        <input type="number" min="0" max="24" value="24">
+                        <input type="number" min="0" max="24" value="24">：
                         <input type="number" min="0" max="60" value="00">
-                        <span class="deletePeriodRange"><i class="layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;" ></i> </span>
+                        <span class="deletePeriodRange"><i class="layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;" ></i> </span>
                     </div>
                 </div>
                 `
@@ -3045,6 +3123,7 @@ export default {
                 shadeClose: true,
                 content: $('#setPeriod'),
                 skin: 'setPeriod set-Table',
+                shade:[0.5, '#000'],
                 btn:[vm.$t('Table.Box.Cell.Period.btn[0]'), vm.$t('Table.Box.Cell.Period.btn[1]'), vm.$t('Table.Box.Cell.Period.btn[2]')],
                 success: function(layero, index){
                     $('.deletePeriodRange').click(function(){
@@ -3193,6 +3272,7 @@ export default {
                 shadeClose: true,
                 btn: ['确定', '取消'],
                 skin: 'set-Table',
+                shade:[0.5, '#000'],
                 content: `
                     <table class="layui-hide" id="selectOrderTable" lay-data="{id: 'selectOrderTable'}"></table>
                 `,
@@ -3362,10 +3442,19 @@ body
             border-radius 2px
             margin 0 10px 0 0
             background #fff url(/public/images/setup/icon_host_add.png) no-repeat center
+    li
+        .tit + div>span
+            display inline-block
+            width 200px
+            height auto
+            border none
+            border-radius 2px
+            margin auto
+            background none
     ul>.active>div>span
         background-image url(/public/images/setup/icon_host_remove.png)
 .addDeviceBox .B
-    display float left
+    display flex
     flex-direction column
     justify-content: center
     button 
@@ -3395,7 +3484,7 @@ body
         text-align center
         border 1px solid #ccc
     td input
-        width 90%
+        width 100%
     .inputNumber
         border 1px solid #ccc
         border-radius 4px
@@ -3404,9 +3493,19 @@ body
 
 
 .set-Table
-    box-shadow 5px 5px 10px #bbb, -5px -5px 10px #bbb
+    box-shadow 5px 5px 10px #888, -5px -5px 10px #888
+    hr
+        margin 5px 0 10px 0 
+        height 1px
+        border none
+        border-top 1px dashed #aaa !important
     .layui-layer-content, .layui-layer-btn 
         background-color #e7f4fd
+    .layui-layer-content
+        padding 15px
+        span
+            font-size 16px
+
     .layui-layer-title 
         background no-repeat 16px center, linear-gradient(to bottom, #329ce5, #2e8bd3)
         border 1px solid #bababa 
@@ -3431,6 +3530,7 @@ body
 
     .layui-form-label
         width 100px
+        color #425d70
     .layui-form-item
         width 90%
         margin-bottom 5px
@@ -3441,10 +3541,9 @@ body
         min-width 120px
     
     #batchBox, #batchBox2
-        padding 12px
         overflow hidden
         .layui-form-item
-            margin 15px auto 0 0
+            margin 13px auto 0 0
         .layui-btn
             width 100px
             margin 5px
@@ -3469,7 +3568,17 @@ body
             background-color #ff4e00
             background-repeat repeat-x
             background-image linear-gradient(180deg,#f50,#f40)
-
+    .setPeriod_content
+        input[type=number]
+            border 1px solid #ccc
+            border-radius 4px
+.setContactgroups
+    .layui-layer-content
+        form
+            display flex
+            flex-direction column
+            .layui-form-checkbox
+                margin 5px 0
 #table
     .operateBtnList
         display flex
@@ -3552,6 +3661,8 @@ body
         text-align center
     .layui-form-item
         width 100% !important
+        margin-top 15px
+        margin-bottom 0
     .layui-layer-btn0
         background-color #82d642 !important
     .layui-layer-btn1

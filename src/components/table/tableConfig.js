@@ -284,14 +284,16 @@ export default  {
     editContactGroups: function (d, contactsList) {
       let res = '';
       if(d.Contactgroups!=undefined){
+        res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.Contactgroups.length==contactsList.length?'checked':''}/>  <hr>`
         $.each(contactsList, (i, e)=>{
           res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.Contactgroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
         })
       }else{
         if(d.contact_groups!=undefined){
-          $.each(contactsList, (i, e)=>{
-            res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.contact_groups.find(item=>item==e.Id)?'checked':''}/>`
-          })
+            res += `<<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.contact_groups.length==contactsList.length?'checked':''}/> <hr>`
+            $.each(contactsList, (i, e)=>{
+                res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.contact_groups.find(item=>item==e.Id)?'checked':''}/>`
+            })
         }
       }
       return [vm.$t('Table.Box.Cell.device.editContactGroups_title'), res];
@@ -523,17 +525,18 @@ export default  {
     editContactGroups: function (d, contactsList) {
         let res = '';
         if(d.Contactgroups!=undefined){
-          $.each(contactsList, (i, e)=>{
-            res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.Contactgroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
-          })
-        }else{
-          if(d.contact_groups!=undefined){
+            res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.Contactgroups.length==contactsList.length?'checked':''}/> <hr>`
             $.each(contactsList, (i, e)=>{
-              res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.contact_groups.find(item=>item==e.Id)?'checked':''}/>`
+                res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.Contactgroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
             })
-          }
+        }else{
+            if(d.contact_groups!=undefined){
+                res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.contact_groups.length==contactsList.length?'checked':''}/> <hr>`
+                $.each(contactsList, (i, e)=>{
+                    res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.contact_groups.find(item=>item==e.Id)?'checked':''}/>`
+                })
+            }
         }
-        // return [vm.$t('Table.Box.Cell.device.editContactGroups_title'), res];
       return [vm.$t('Table.Box.Cell.monitoring.editContactGroups_title'), res];
     },
     editMore: function (d, timeSlot, timeBase) {
@@ -666,7 +669,7 @@ export default  {
                                         <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
                                         <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
                                     </div>
-                                    <i class="layui-icon layui-icon-close-fill layer_checkOrder_deleteBtn" style="cursor: pointer; color: red; font-size: 28px;"></i>
+                                    <i class="layui-icon layui-icon-close-fill layer_checkOrder_deleteBtn" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                                 </div>
                             </div>
                         </div>
@@ -680,7 +683,7 @@ export default  {
                                     <div style="margin: 5px">
                                         <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
                                     </div>
-                                    <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
+                                    <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                                 </div>
                             </div>
                         </div>
@@ -728,7 +731,7 @@ export default  {
                                     <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
                                     <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
                                 </div>
-                                <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
+                                <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                             </div>
                         </div>
                     `
@@ -740,7 +743,7 @@ export default  {
                                 <div style="margin: 5px">
                                     <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' autocomplete="off"  lay-skin='primary' value='${d.CheckCommandParameters[i]}' title='${d.CheckCommandParameters[i]}' />
                                 </div>
-                                <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: red; font-size: 28px;"></i>
+                                <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                             </div>
                         </div>
                     `
@@ -1035,10 +1038,12 @@ export default  {
     editContactGroups: function (d, contactsList) {
       let res = '';
       if(d.ContactGroups!=undefined){
+        res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.ContactGroups.length==contactsList.length?'checked':''}/> <hr>`
         $.each(contactsList, (i, e)=>{
           res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.ContactGroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
         })
       }else{
+        res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" /> <hr>`
         $.each(contactsList, (i, e)=>{
           res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}'/>`
         })
@@ -1177,9 +1182,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[2]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-          <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-        </span>${d.monday?d.monday:''}`
+          return `
+          <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+        ${d.monday?d.monday:''}`
         },
         event: 'setPeriod-monday',
         style: 'cursor: pointer'
@@ -1189,9 +1194,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[3]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-          <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-        </span>${d.tuesday?d.tuesday:''}`
+          return `
+          <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+        ${d.tuesday?d.tuesday:''}`
         },
         event: 'setPeriod-tuesday',
         style: 'cursor: pointer'
@@ -1201,9 +1206,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[4]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-          <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-        </span>${d.wednesday?d.wednesday:''}`
+          return `
+          <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+        ${d.wednesday?d.wednesday:''}`
         },
         event: 'setPeriod-wednesday',
         style: 'cursor: pointer'
@@ -1213,9 +1218,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[5]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-          <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-        </span>${d.thursday?d.thursday:''}`
+          return `
+          <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+        ${d.thursday?d.thursday:''}`
         },
         event: 'setPeriod-thursday',
         style: 'cursor: pointer'
@@ -1225,9 +1230,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[6]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-          <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-        </span>${d.friday?d.friday:''}`
+          return `
+          <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+        ${d.friday?d.friday:''}`
         },
         event: 'setPeriod-friday',
         style: 'cursor: pointer'
@@ -1237,9 +1242,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[7]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-          <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-        </span>${d.saturday?d.saturday:''}`
+          return `
+          <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+        ${d.saturday?d.saturday:''}`
         },
         event: 'setPeriod-saturday',
         style: 'cursor: pointer'
@@ -1249,9 +1254,9 @@ export default  {
         title: vm.$t('Table.period.tableTH[8]'),
         align: "center",
         templet(d) {
-          return `<span style='display: inline-block; text-align: center; line-height: 26px; width: 25px; height: 25px; background: linear-gradient( #9de9fe,#1a85c2); border-radius: 50%;color: #fff'>
-            <i class="glyphicon glyphicon-repeat" style='color: #fff'></i>
-          </span>${d.sunday?d.sunday:''}`
+          return `
+            <i class="glyphicon glyphicon-edit" style='color: #007bbb'></i>
+          ${d.sunday?d.sunday:''}`
         },
         event: 'setPeriod-sunday',
         style: 'cursor: pointer'

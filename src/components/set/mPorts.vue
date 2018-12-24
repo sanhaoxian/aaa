@@ -206,6 +206,7 @@ export default{
         },
         IPVAddFun(){
             let vm = this;
+            if(vm.currentSet.addresses.length>=5){return false}
             this.currentSet.addresses.push({
                 Address: "",
                 Gateway: "",
@@ -223,9 +224,7 @@ export default{
             let list = layui.table.checkStatus('IPv4Table').data;
             list.filter((item)=>{
                 if(!item.hasOwnProperty('Id')){
-                    console.log(item);
                     let index =  vm.currentSet.addresses.findIndex((e)=>e.layui_index==item.layui_index)
-                    console.log("位置", index);
                     index>=0&&vm.currentSet.addresses.splice(index, 1);
                     layui.table.reload("IPv4Table", {
                         data: vm.currentSet.addresses
