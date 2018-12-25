@@ -365,7 +365,7 @@
                                                 </ul>
                                             </div>
 
-                                            <div  style="width: 60%">
+                                            <div >
                                                 <input type="checkbox" :title="$t('Table.Box.Cell.contacts.more.label[3]')" lay-skin="primary" lay-filter="selectAll">
                                                 <ul style="margin-left: 20px;" v-html="code1">
                                                     {{code1}}
@@ -771,9 +771,15 @@ export default {
                             vm.renderTable(res.body);
                             if(vm.sort=='period'){
                                 this.$nextTick(()=>{
+                                    $('td').bind('mouseover', (e)=>{
+                                        return false;
+                                    })
+                                    $('.periodTips').bind('mouseover', (e)=>{return false});
                                     $('td div.layui-table-cell').bind('mouseover', (e)=>{
                                         let value = $(e.target)[0].innerText
-                                        if(value==""){return false}
+                                        // console.log("悬浮数据", $(e.target).parent().data('field'));
+                                        if(value==""||$(e.target).parent().data('field')=='Name'||$(e.target).parent().data('field')=='Alias'){return false}
+                                        
                                         $(e.target).parent().css('position', 'relative')
                                    
                                         let top = $(e.target).offset().top;
@@ -781,13 +787,13 @@ export default {
                                         let offsetLeft = $(e.target).width()/2;
                                         let tips = `<div style="z-index: 1000000000; 
                                             background: #ccd0d4;
-                                            color: #aaa;
+                                            color: #000;
                                             border: 1px solid #fff;
-                                            border-radius: 4px;
+                                            border-radius: 3px;
                                             padding: 5px;
                                             box-shadow:  1px 1px 3px #ccd0d4, 0 0 0 rgba(0, 0, 0, 0.8), 1px 1px 4px #fff;
                                             position: absolute; 
-                                            top: ${ top-30 }px; 
+                                            top: ${ top-40 }px; 
                                             left:${ left+offsetLeft }px;" 
                                             class="periodTips">${value}</div>`
                                         $('body').css('position', 'relative');
@@ -1435,7 +1441,7 @@ export default {
                         layer.open({
                             type: 1,
                             title: tit,
-                            area: ['545px', '320px'],
+                            area: ['545px', '370px'],
                             shadeClose: true,
                             content: con,
                             skin: 'set-Table',
@@ -1450,7 +1456,7 @@ export default {
                                 // 获取弹框的数据
                                 let postData = layero.find('form').serializeArray();
                                 // 调整数据结构 设置用户权限什么的，不涉及修改密码；
-                            
+
                                 let data = vm.config[vm.sort].submitFile('update', postData);
                                 data.data.Id = vm.currentObj[vm.currentObj.length-1].Id;
                                 vm.$http.post(vm.config[vm.sort].onSubmit('update'), data.data)
@@ -1458,13 +1464,17 @@ export default {
                                     if(res.body.status){
                                         vm.successMsg(res.body.msg)
                                         vm.getTableData();
+                                        vm.currentObj = []
                                     }else{
                                         vm.errorMsg(res.body.msg);
+                                        vm.currentObj = []
                                     }
+                                    layer.close(index);
                                 },(err)=>{
-                                    vm.errorMsg(err.body.msg)
+                                    vm.errorMsg(err.body.msg);
+                                    layer.close(index);
                                 });
-                                layer.close(index);
+                                
                             },
                             end() { }
                         });
@@ -1476,7 +1486,7 @@ export default {
                 layer.open({
                     type: 1,
                     title: tit,
-                    area: ['545px', '320px'],
+                    area: ['545px', '370px'],
                     shadeClose: true,
                     content: con,
                     btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
@@ -1561,11 +1571,15 @@ export default {
                             vm.$http.post(vm.config[vm.sort].onSubmit('update'), data)
                             .then((res)=>{
                                 if(res.body.status){
-                                    !renewPwd && vm.successMsg(res.body.msg)
-                                    vm.getTableData();
-                                    layer.close(index);
+                                    if(!renewPwd) {
+                                        vm.successMsg(res.body.msg)
+                                        vm.getTableData();
+                                        vm.currentObj = []
+                                        layer.close(index);
+                                    }
                                 }else{
                                     vm.errorMsg(res.body.msg);
+                                    vm.currentObj = []
                                 }
                                 if(renewPwd){
                                     $.each(postData, (i, e)=>{
@@ -1574,19 +1588,27 @@ export default {
                                         if(e.name=="oldpwd"){changePwd.oldpwd=e.value};
                                         if(e.name=='renewpwd'){changePwd.renewpwd=e.value};
                                     })
+                                    if(changePwd.newpwd!=changePwd.renewpwd){
+                                        vm.errorMsg(vm.$t('Table.Box.Add.user.tips[0]')+"!")
+                                        
+                                        return false
+                                    }
                                     vm.$http.post(vm.config[vm.sort].onSubmit('changepwd'), changePwd)
                                     .then((res)=>{
                                         if(res.body.status){
                                             vm.successMsg(res.body.msg);
                                             vm.getTableData();
+                                            vm.currentObj = []
                                             layer.close(index);
                                         }else{
                                             vm.errorMsg(res.body.msg);
+                                            vm.currentObj = []
                                         }
                                         vm.reSetPwd = false;
                                         $('#userEditBox').find('form')[0].reset();
                                     },(err)=>{
                                         vm.errorMsg(err.body.msg);
+                                        vm.currentObj = []
                                         $('#userEditBox').find('form')[0].reset();
                                     });
                                     // layer.close(index);
@@ -1594,7 +1616,6 @@ export default {
                             },(err)=>{
                                 vm.errorMsg(err.body.msg);
                                 $('#userEditBox').find('form')[0].reset();
-
                             });
                         }else{
                             let data = vm.config[vm.sort].submitFile('update', postData);
@@ -1604,11 +1625,16 @@ export default {
                                 if(res.body.status){
                                     vm.successMsg(res.body.msg)
                                     vm.getTableData();
+                                    vm.currentObj = []
                                 }else{
+                                    vm.currentObj = []
                                     vm.errorMsg(res.body.msg);
                                 }
+                                layer.close(index);
                             },(err)=>{
                                 vm.errorMsg(err.body.msg)
+                                vm.currentObj = [];
+                                layer.close(index);
                             });
                         }
                         
@@ -1936,14 +1962,18 @@ export default {
                             })
                             vm.Tdata.splice(index2, 1, obj.data)
                             // vm.renderTable(vm.Tdata);
-                            
+                            obj.data.edit = 'update'
+                            $(obj.tr).addClass('change')
+
                             layui.table.reload(vm.sort,{
                                 data: vm.Tdata
                             })
                             // 加入到更新数组
-                            obj.data.edit = 'update'
-                            $(obj.tr).addClass('change')
+                           
                             vm.updateGroup.push(obj.data);
+                            if($('.modifyFlag').find('span').length==0){
+                                $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
+                            }
                             obj = '';
                         }
                     });
@@ -2397,24 +2427,27 @@ export default {
                     }
                 }
                 obj.data.edit = 'update';
-                let index2;
+                let index1, index2;
                 $.each(vm.Tdata, (i,e)=>{
                     if(e.Id==obj.data.Id){
-                        return index2 = i
+                        return index1 = i
                     }
                 })
-                vm.Tdata.splice(index2, 1, obj.data)
+                vm.Tdata.splice(index1, 1, obj.data)
                 vm.renderTable(vm.Tdata);
                 
                 if(vm.updateGroup.length>0){
-                    let index2=null;
+                    index2=null;
                     $.each(vm.updateGroup, (i,e)=>{
                         if(e.Id===obj.data.Id){
                             index2=i
                         }
                     })
-                    if(index2!=null){vm.updateGroup.splice(index2, 1, obj.data)};
                 }
+                if(index2!=null){
+                    vm.updateGroup.splice(index2, 1)
+                }
+                vm.updateGroup.push(obj.data);
             }else if(obj.event == 'timedNoti'){
                 for(let key in data){
                     if(key=='_SMS_NOTIFY_ENABLE'){
@@ -2756,7 +2789,7 @@ export default {
                     code += '<tr><td hostId=' + vm.cell[Ediost[i][0]].Id + ' mark='+Ediost[i][0]+'><input type="checkbox" lay-skin="primary"></td><td>'
                         + Ediost[i][1] + '</td><td><input type="number" class="inputNumber" value="1" min="1"></td>';
                     if (vm.cell[Ediost[i][0]].HostnameRelatedCommands.length > 0) {
-                        code += '<td><span class="glyphicon glyphicon-edit" onclick="app.selNotification(this,' + Ediost[i][0] + ')"></span></td>';
+                        code += `<td><span class="glyphicon glyphicon-edit" onclick="app.selNotification(this,'${Ediost[i][0]}')"></span></td>`;
                     } else {
                         code += '<td></td>';
                     }
@@ -2788,6 +2821,7 @@ export default {
         selContactgroup(mc) {
             var vm = this, i = 0, j, txt = Common.zGetNode(mc, "TD").textContent.split("，") || "", inHTML = "<ul class='Z1 layui-form'>";
             inHTML += `<li><input type="checkbox" lay-skin="primary" name="allCheckBox" lay-filter="allChoose" title="全选"></li> <hr>`
+            inHTML += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
             for (; i < vm.contactsList.length; i++) {
                 inHTML += `<li><input type="checkbox" name="${vm.contactsList[i].Id}" lay-skin="primary" title="${vm.contactsList[i].Name}" ctsid="${vm.contactsList[i].Id}" `;
                 for (j = 0; j < txt.length; j++) {
@@ -2795,6 +2829,7 @@ export default {
                 }
                 inHTML += '></li>';
             }
+            inHTML += `</div>`
             inHTML += '</ul>';
             layui.layer.open({
                 type: 1,
@@ -2842,6 +2877,42 @@ export default {
                     layui.layer.close(index);
                 }
             });
+        },
+        // 设备管理——关联命令
+        selNotification(dom, num) {
+            let vm = this, data = []; 
+            for (let i=0; i < vm.cell[num].HostnameRelatedCommands.length; i++) {
+                data.push(vm.cell[num].HostnameRelatedCommands[i]);
+            }
+            let opt = {
+                type: 1,
+                title: '选择设备命令',
+                content: `<div id="selNotification" style="overflow: hidden"></div>`,
+                area: ['546px', '319px'],
+                btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
+                skin: 'set-Table',
+                shade:[0.5, '#000'],
+                success() {
+                    layui.table.render({
+                        elem: '#selNotification',
+                        data: data,
+                        cols: [[ 
+                            {type: "checkbox",align: "center"},
+                            {field: 'Name', title: '关联命令', align: "center"},
+                        ]]
+                    });
+                },
+                yes(index, layero) {
+                    let check = layui.table.checkStatus('selNotification')
+                    let code = []
+                    check.data.forEach((e, i)=>{
+                        code.push(e.Id);
+                    });
+                    $(dom).parent().attr('code', code)
+                    layui.layer.close(index);
+                }
+            }
+            layer.open(opt);
         },
         // 设备管理——批量管理 应用对象和参考对象点击执行函数
         changeBtnClick(index) {
@@ -3157,18 +3228,21 @@ export default {
                     }
                     let index1, index2;
                     if(obj.data.Id){
-                        vm.$http.post('/config/rest/Timeperiods/'+obj.data.Id, obj.data)
-                        .then((res)=>{
-                            vm.getTableData();
-                            layer.close(index);
+                        vm.updateGroup.forEach((e, i)=>{
+                            if(obj.data.Id==e.Id){
+                                index1 = i
+                            }
                         });
+                        if(index1>=0){vm.updateGroup.splice(index1, 1 )};
+                        obj.data.edit = 'update';
+                        vm.updateGroup.push(obj.data);
                     }else{
                         vm.updateGroup.forEach((e, i)=>{
                             if(obj.data.id==e.id){
-                                index = i
+                                index1 = i
                             }
                         });
-                        if(index>=0){vm.updateGroup.splice(index1, 1 )};
+                        if(index1>=0){vm.updateGroup.splice(index1, 1 )};
                         vm.updateGroup.push(obj.data);
                     };
                     // 更新一下表格
@@ -3333,6 +3407,21 @@ export default {
 </script>
 <style lang="stylus">
 body
+    .periodTips::after
+        position absolute
+        bottom -10px
+        left 0
+        content ''
+        width 0
+        height 0
+        border: 20px solid transparent
+        border-top 10px solid #ccc
+        border-bottom 0
+    .ContactGroups-box
+        div
+            width 50%
+        li
+            width 50%
     table .glyphicon-edit
         color #007bbb;
         cursor pointer;
@@ -3505,6 +3594,9 @@ body
         padding 15px
         span
             font-size 16px
+            overflow hidden
+            text-overflow ellipsis
+            white-space normal
 
     .layui-layer-title 
         background no-repeat 16px center, linear-gradient(to bottom, #329ce5, #2e8bd3)
@@ -3539,7 +3631,8 @@ body
         left auto
         top auto
         min-width 120px
-    
+    ul
+        margin 0
     #batchBox, #batchBox2
         overflow hidden
         .layui-form-item
@@ -3572,6 +3665,31 @@ body
         input[type=number]
             border 1px solid #ccc
             border-radius 4px
+    #selNotification + .layui-form th
+        background #54b5ff
+        color #fff
+    #selNotification + .layui-form .layui-table-body
+        overflow hidden
+    #contactsMore .layui-form .layui-tab
+        .layui-tab-title
+            border-bottom 1px solid #c8c8c8
+            li
+                background #f5f5f5
+                color #425d70
+                border 1px solid #c8c8c8
+            li:nth-child(1)
+                border-right none
+            .layui-this
+                background #e7f4fd
+                // border
+        .layui-tab-content
+            .layui-tab-item
+                .layui-form-item
+                    // margin 0
+                    width 100%
+                .layui-form-item:nth-child(3)
+                    .layui-input-block
+                        margin 0
 .setContactgroups
     .layui-layer-content
         form
@@ -3628,10 +3746,9 @@ body
     background-color #54b5ff
 .layui-form-radioed>i
     color: #54b5ff;
-.layui-form-select dl dd.layui-this {
-    background-color: #1E9FFF;
-    color: #fff;
-}
+.layui-form-select dl dd.layui-this 
+    background-color #1E9FFF
+    color #fff
 
 .batch
     background-color #83c831

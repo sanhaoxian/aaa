@@ -76,7 +76,8 @@ export default{
                     elem: '#dateTimeSet',
                     type: 'datetime',
                     value: new Date(),
-                    isInitValue: true 
+                    isInitValue: true,
+                    theme: '#1E9FFF'
                 });
             });
             this.getServerTime();

@@ -285,15 +285,19 @@ export default  {
       let res = '';
       if(d.Contactgroups!=undefined){
         res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.Contactgroups.length==contactsList.length?'checked':''}/>  <hr>`
+        res += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
         $.each(contactsList, (i, e)=>{
           res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.Contactgroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
         })
+        res += `</div>`
       }else{
         if(d.contact_groups!=undefined){
-            res += `<<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.contact_groups.length==contactsList.length?'checked':''}/> <hr>`
+            res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.contact_groups.length==contactsList.length?'checked':''}/> <hr>`
+            res += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
             $.each(contactsList, (i, e)=>{
                 res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.contact_groups.find(item=>item==e.Id)?'checked':''}/>`
             })
+            res += `</div>`
         }
       }
       return [vm.$t('Table.Box.Cell.device.editContactGroups_title'), res];
@@ -359,7 +363,7 @@ export default  {
           <div class="layui-form-item">
               <label class="layui-form-label">${vm.$t('Table.Box.Cell.device.more.label[5]')}</label>
               <div class="layui-input-block">
-                  <input type="checkbox" value="true" name="NotificationsEnabled" title="ON" ${d.NotificationsEnabled ? 'checked' : ''}>
+                  <input type="checkbox" value="true" lay-skin="primary" name="NotificationsEnabled" ${d.NotificationsEnabled ? 'checked' : ''}>
               </div>
           </div>
       `;
@@ -367,7 +371,7 @@ export default  {
         <div class="layui-form-item">
             <label class="layui-form-label">${vm.$t('Table.Box.Cell.device.more.label[6]')}</label>
             <div class="layui-input-block">
-                <input type="checkbox" value="true" name="_ZIGBEE_ENABLED" title="ON" ${d.NotificationsEnabled ? 'checked' : ''}>
+                <input type="checkbox" value="true" lay-skin="primary" name="_ZIGBEE_ENABLED" ${d.NotificationsEnabled ? 'checked' : ''}>
             </div>
         </div>
       `: ''
@@ -526,15 +530,19 @@ export default  {
         let res = '';
         if(d.Contactgroups!=undefined){
             res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.Contactgroups.length==contactsList.length?'checked':''}/> <hr>`
+            res += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
             $.each(contactsList, (i, e)=>{
                 res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.Contactgroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
             })
+            res += `</div>`
         }else{
             if(d.contact_groups!=undefined){
                 res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.contact_groups.length==contactsList.length?'checked':''}/> <hr>`
+                res += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
                 $.each(contactsList, (i, e)=>{
                     res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.contact_groups.find(item=>item==e.Id)?'checked':''}/>`
                 })
+                res += `</div>`
             }
         }
       return [vm.$t('Table.Box.Cell.monitoring.editContactGroups_title'), res];
@@ -587,7 +595,7 @@ export default  {
           <div class="layui-form-item">
               <label class="layui-form-label">${vm.$t('Table.Box.Cell.monitoring.more.label[5]')}</label>
               <div class="layui-input-block">
-                  <input type="checkbox" value="true" name="NotificationsEnabled" title="ON" ${d.NotificationsEnabled ? 'checked' : ''}>
+                  <input type="checkbox" value="true" lay-skin="primary" name="NotificationsEnabled" ${d.NotificationsEnabled ? 'checked' : ''}>
               </div>
           </div>
       `;
@@ -595,7 +603,7 @@ export default  {
         <div class="layui-form-item">
             <label class="layui-form-label">${vm.$t('Table.Box.Cell.monitoring.more.label[6]')}</label>
             <div class="layui-input-block">
-                <input type="checkbox" value="true" name="_ZIGBEE_ENABLED" title="ON" ${d.NotificationsEnabled ? 'checked' : ''}>
+                <input type="checkbox" value="true" lay-skin="primary" name="_ZIGBEE_ENABLED" ${d.NotificationsEnabled ? 'checked' : ''}>
             </div>
         </div>
       `: ''
@@ -1039,14 +1047,18 @@ export default  {
       let res = '';
       if(d.ContactGroups!=undefined){
         res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" ${d.ContactGroups.length==contactsList.length?'checked':''}/> <hr>`
+        res += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
         $.each(contactsList, (i, e)=>{
           res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}' ${e.Id&&d.ContactGroups.find(item=>Number(item.Id)===Number(e.Id))?'checked':''}/>`
         })
+        res += `</div>`
       }else{
         res += `<input type='checkbox' name='allCheckBox' lay-skin='primary' value='all' title='全选' lay-filter="allChoose" /> <hr>`
+        res += `<div style="display: flex; flex-wrap:wrap" class="ContactGroups-box">`
         $.each(contactsList, (i, e)=>{
           res += `<input type='checkbox' name='${e.Name}' lay-skin='primary' value='${e.Id}' title='${e.Name}'/>`
-        })
+        });
+        res += `</div>`
       }
       return [vm.$t('Table.Box.Cell.contacts.editContactGroups_title'), res];
     },

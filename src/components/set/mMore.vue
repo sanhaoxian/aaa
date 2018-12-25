@@ -180,14 +180,14 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="energy">
-                            <div class="A">
+                        <div class="energy layui-form">
+                            <div class="A" lay-filter="energy">
                                 <p>{{$t('mMore.energyTab.label[2]')}}</p>
                                 <div>
                                     <ul class="list-group">
                                         <li v-if="che(servicelist[index.host])" class="list-group-item"><label>{{$t('mMore.energyTab.tips[0]')}}</label></li>
                                         <li v-for="sl in servicelist[index.host]" :key="sl.Id" class="list-group-item">
-                                            <label><input type="checkbox" :serid="sl.Id">{{sl.Description}}</label>
+                                            <input type="checkbox" lay-skin="primary" :serid="sl.Id" :title="sl.Description">
                                         </li>
                                     </ul>
                                 </div>
@@ -202,7 +202,7 @@
                                     <table class="table-show table-panel text-center">
                                         <thead>
                                             <tr>
-                                                <th><label><input @click="allSel($event)" type="checkbox">{{$t('mMore.energyTab.son_table_th[0]')}}</label></th>
+                                                <th><input type="checkbox" lay-filter="allSel" lay-skin="primary" style="color: #fff"></th>
                                                 <th>{{$t('mMore.energyTab.son_table_th[1]')}}</th>
                                                 <th>{{$t('mMore.energyTab.son_table_th[2]')}}</th>
                                                 <th>{{$t('mMore.energyTab.son_table_th[3]')}}</th>
@@ -210,17 +210,17 @@
                                         </thead>
                                         <tbody>
                                             <tr v-for="op in oldpue" :key="op.Id" class="old">
-                                                <td><label><input type="checkbox" :oldid="op.Id"></label></td>
+                                                <td><input type="checkbox" :oldid="op.Id" lay-skin="primary"></td>
                                                 <td>{{op.serName}}</td>
                                                 <td>{{op.hostName}}</td>
                                                 <td>
-                                                    <select class="form-control" :value="op.Type" onchange="$(this).parents('tr').addClass('xg')">
+                                                    <select class="form-control" :value="op.Type">
                                                         <option v-for="pty in pueTypeList" :key="pty.value" :value="pty.value">{{pty.text}}</option>
                                                     </select>
                                                 </td>
                                             </tr>
                                             <tr v-for="np in newpue" :key="np.id" class="new">
-                                                <td><label><input type="checkbox"></label></td>
+                                                <td><input type="checkbox" lay-skin="primary"></td>
                                                 <td :serId="np.serId">{{np.serName}}</td>
                                                 <td :hostId="np.hostId">{{index.hostName}}</td>
                                                 <td>
@@ -709,6 +709,7 @@ export default {
             let vm = this;
             this.index.hostId = vm.hostgroup[this.index.group].Hosts[this.index.host].Id;
             this.index.hostName = vm.hostgroup[this.index.group].Hosts[this.index.host].Name;
+            layui.form.render()
         },
         refreshOther: function () {
             var vm = this;
@@ -726,6 +727,7 @@ export default {
                     } else {
                         vm.refreshOther();
                     }
+                    
                 });
             }
         },
@@ -751,6 +753,19 @@ export default {
                 vm.$nextTick(()=>{
                     vm.oldpue = x.data.items;
                     vm.refreshService();
+                    layui.form.render();
+                    layui.form.on('select', function(data){
+                        $(data.elem).parents().parents('tr').addClass('xg')
+                    });
+                    layui.form.on('checkbox(allSel)', function(data){
+                        // console.log(data.elem);
+                        let check_box_list = $(data.elem).parent().parent().parent().next().find("input[type='checkbox']");
+                        for (let i=0; i < check_box_list.length; i++){
+                            console.log(check_box_list[i].checked);
+                            check_box_list[i].checked = !check_box_list[i].checked;
+                        }
+                        layui.form.render('checkbox')
+                    });
                 });
                 vm.newpue = [];
             });
@@ -758,11 +773,8 @@ export default {
         //添加功率项
         addpue: function () {
             var bkb = $(".energy .A input"), i, vm = this;
-            
             for (i = 0; i < bkb.length; i++) {
-                
                 if (bkb[i].checked) {
-                    console.log(bkb[i]);
                     vm.newpue.push({
                         serId: $(bkb[i]).attr("serid"),
                         hostId: vm.index.hostId,
@@ -770,10 +782,14 @@ export default {
                         id: parseInt(Math.random()*1000, 10)
                     });
                     bkb[i].checked = false;
-                    $(bkb[i]).attr("disabled","disabled").parents("label").attr("disabled","disabled");
+                    $(bkb[i]).attr("disabled","disabled").parents().attr("disabled");
+                    
                 }
                 bkb[i].checked = false;
             }
+            vm.$nextTick(()=>{
+                layui.form.render()
+            });
         },
         //删除功率项
         removepue: function () {
@@ -788,6 +804,7 @@ export default {
                     bkb[i].checked = false;
                 }
             }
+            
             //执行html删除
             newGroup.reverse();
             for (i = 0; i < newGroup.length; i++) {
@@ -799,7 +816,6 @@ export default {
         savepue: function () {
             var bkb = $(".energy .C .new"), xkb = $(".energy .C .xg"),
                 vm = this, i, j = 0, k = 0, l = 0, code;
-            
             //删除
             for (i = 0; i < vm.delpue.length; i++) {
                 $.ajax({
@@ -822,6 +838,7 @@ export default {
             }
             //修改
             for (i = 0; i < xkb.length; i++) {
+                if($(xkb[i]).hasClass('new')){ break; }
                 code = {
                     Id: xkb[i].querySelector("input").getAttribute("oldid"),
                     Type: xkb[i].querySelector("select").value
@@ -891,6 +908,7 @@ export default {
                     }
                 }
             }
+            layui.form.render()
         },
         // 转发参数
         renderForward() {
@@ -1063,10 +1081,8 @@ export default {
             }
         },
         allSel(el) {
-            let check_box_list = $(el.target).parent().parent().parent().parent().next().find("input[type='checkbox']");
-            for (let i=0; i < check_box_list.length; i++){
-                check_box_list[i].checked = !check_box_list[i].checked;
-            }
+            console.log(el);
+            
         }
     },
     updated:function () {
@@ -1262,7 +1278,7 @@ div[class$="-Type"]
                         display flex
                         flex-direction column
                         .list-group-item
-                            padding 0
+                            padding 10px
                             border-radius 0
                             label
                                 height 100%
@@ -1278,6 +1294,8 @@ div[class$="-Type"]
                                 margin 0 5px 0 0
                     .A>div
                         overflow-y auto
+                        .layui-disabled
+                            // background #000
                     .B
                         display float left
                         flex-direction column
@@ -1307,8 +1325,6 @@ div[class$="-Type"]
                         flex-direction column
                         tr
                             width 100%
-                        td input
-                            width 20px
                         th
                             background #54b5ff
                             color #fff
