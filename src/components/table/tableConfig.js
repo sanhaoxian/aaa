@@ -705,22 +705,6 @@ export default  {
                 `
             }
         }else{
-            // res += `
-            //     <div style="display: flex; flex-direction: column; justify-content: flex-start;">
-            //         <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[0]')}</p>
-            //         <div style="margin: 5px 5px 5xp 0">
-            //         <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='firstLevel' lay-skin='primary' value='${d.CheckCommandParameters[0]}' title='${d.CheckCommandParameters[0]}' />
-            //         </div>
-            //         <p>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label[1]')}</p>
-            //         <div style="margin: 5px 5px 5xp 0">
-            //         <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='secondLevel' lay-skin='primary' value='${d.CheckCommandParameters[1]}' title='${d.CheckCommandParameters[1]}'/>
-            //         </div>
-            //     </div>
-            // `
-            console.log("数据", d.CheckCommandParameters);
-            console.log("长度", d.CheckCommandParameters.length);
-            console.log(d.CheckCommandParameters[0].indexOf(','));
-            // <a class="layui-btn layui-btn-warm delete layer_checkOrder_deleteBtn" style="height: 24px;line-height: 24px;">删除</a>
             res += `
                 <div class="layer_checkOrder_content" style="display: flex; flex-direction: column;">
             `
@@ -746,7 +730,7 @@ export default  {
                 }else{
                     res+=`
                         <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
-                            <p>2级报警</p>
+                            <p>${vm.$t('Table.monitoring.checkOrder_label[1]')}</p>
                             <div style="display: flex">
                                 <div style="margin: 5px">
                                     <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters' autocomplete="off"  lay-skin='primary' value='${d.CheckCommandParameters[i]}' title='${d.CheckCommandParameters[i]}' />

@@ -376,20 +376,6 @@ const cn = {
             },
         }
     },
-    /** ElementUI **/
-    element: {
-        loading_text: "拼命加载中",
-        range_separator: "至",
-        start_placeholder: "请选择开始日期",
-        end_placeholder: "请选择结束日期",
-
-        Notification:{
-            error_title: "错误",
-            success_title: "成功",
-
-            not_object: "请选择需操作的对象"
-        }
-    },
     /** 监控项,设备项 弹框的翻译 **/
     service_dialog:{
         title: "命令>>",
@@ -428,10 +414,13 @@ const cn = {
         },
 
         devices: {
-            tableTH: ["设备名称", "机房组", "联系人组", "分类", "驱动", "IP地址", "端口", "RS485", "被动连接", "被动连接注册包", "监控项", "更多"]
+            tableTH: ["设备名称", "机房组", "联系人组", "分类", "驱动", "IP地址", "端口", "RS485", "被动连接", "被动连接注册包", "监控项", "更多"],
+            filter_label: ["机房", "查询类别", "设备名称", "设备驱动", "设备IP"],
+            filter_btn: ["搜索"]
         },
         monitoring: {
-            tableTH: ["监控项名称", "联系人组", "监控项ID", "检查命令", "脚本", "更多"]
+            tableTH: ["监控项名称", "联系人组", "监控项ID", "检查命令", "脚本", "更多"],
+            checkOrder_label: ["级报警", "2级报警"]
         },
         user: {
             data:["超级管理员", "操作员", "查看员"],
@@ -485,7 +474,11 @@ const cn = {
                     tips: [
                         // 提示空的联系人
                         "您必须为每个设备，勾选至少一个联系人组，如还未有联系人组，请先创建一个!"
-                    ]
+                    ],
+                    selNotification: {
+                        title: "选择设备命令",
+                        table_td: ["关联命令"]
+                    }
                 },
                 user: {
                     title: "新增弹框>>",
@@ -503,7 +496,7 @@ const cn = {
                     ],
                     placeholder: [
                         "请输入用户名",
-                        "密码长度为3-20位",
+                        "密码长度为6-20位，由字母+数据组成",
                         "请保持两次密码输入一致"
                     ],
                     option: ["所有机房", "所有联系人", "超级管理员","操作员","查看员"],
@@ -555,7 +548,7 @@ const cn = {
             },
             Cell: {
                 device: {
-                    editContactGroups_title: "选择联系人组",
+                    editContactGroups_title: "选择联系人组>>",
                     more: {
                         title: "设备更多参数",
                         label: ["检查间隔","重复次数","检查时间段",
@@ -566,7 +559,7 @@ const cn = {
                     }
                 },
                 monitoring: {
-                    editContactGroups_title: "选择联系人组",
+                    editContactGroups_title: "选择联系人组>>",
                     editCheckOrder: {
                         title: "检查命令",
                         label: ["1级报警", "级报警"],
@@ -583,7 +576,7 @@ const cn = {
                     }
                 },
                 contacts: {
-                    editContactGroups_title: "选择联系人组",
+                    editContactGroups_title: "选择联系人组>>",
                     timedNoti: {
                         title: "定时通知>>",
                         option: [
@@ -808,7 +801,9 @@ const cn = {
             type_option: ["IT功率项", "物理基础设施", "电能项", "输入功率项"]
 
         },
-
+        TimingTask: {
+            tips: ["请选择测试对象", "新增对象不能对比"]
+        },
         linkage: {
             prompt:{
                 title: '越限命令'
@@ -840,7 +835,14 @@ const cn = {
         "新增成功",
         "删除成功",
         "更新成功",
-        "至少选择两项进行操作"
+        "至少选择两项进行操作",
+        "密码格式错误，至少六位的字母+数字组成",
+        "邮箱格式错误",
+        "号码有误",
+        "参数不能为空",
+        "至少勾选一个联系人组",
+        "请先加入设备",
+        "请保证每个参数都至少选择一项"
     ]
 }   
 export default cn;

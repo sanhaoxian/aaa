@@ -370,19 +370,6 @@ const en = {
             },
         }
     },
-    /** ElementUI **/
-    element: {
-        loading_text: "Desperately loading",
-        range_separator: "to",
-        start_placeholder: "start date",
-        end_placeholder: "end date",
-
-        Notification:{
-            error_title: "Error",
-            success_title: "Success",
-            not_object: "Please select the object to be operated"
-        }
-    },
     /** 监控项,设备项 弹框翻译 **/
     service_dialog:{
         title: "Order",
@@ -420,10 +407,13 @@ const en = {
             tableTH:["Group", "Devices", "Background"]
         },
         devices: {
-            tableTH: ["Name", "Group", "Contact", "Sort", "Drive", "IP", "Port", "RS485", "Passive connection", "PCRP", "Monitoring item", "More"]
+            tableTH: ["Name", "Group", "Contact", "Sort", "Drive", "IP", "Port", "RS485", "Passive connection", "PCRP", "Monitoring item", "More"],
+            filter_label: ["Host", "Category", "Device name", "Device driver", "Device IP"],
+            filter_btn: ["Search"]
         },
         monitoring: {
-            tableTH: ["Monitoring item name", "Contact group", "Monitoring item ID", "Check command", "script", "More"]
+            tableTH: ["Monitoring item name", "Contact group", "Monitoring item ID", "Check command", "script", "More"],
+            checkOrder_label: ["level alarm", "2 level alarm"]
         },
         user: {
             data:["Super Admin", "Operator", "Check the member"],
@@ -477,7 +467,11 @@ const en = {
                     tips: [
                         // 提示空的联系人
                         "You must check at least one contact group for each device. If you do not have a contact group yet, please create one first!"
-                    ]
+                    ],
+                    selNotification: {
+                        title: "Select Device Command",
+                        table_td: ["Associated command"]
+                    }
                 },
                 user: {
                     title: "Add a new frame>>",
@@ -495,7 +489,7 @@ const en = {
                     ],
                     placeholder: [
                         "please enter user name",
-                        "Password length is 3-20 digits",
+                        "Password is 6-20 bits long and consists of letters and data.",
                         "Please keep the password input consistent twice."
                     ],
                     option: ["All hostgroup", "All contact", "Super administrator", "operator", "Viewer"],
@@ -802,6 +796,10 @@ const en = {
             type_option: ["IT power item", "Physical infrastructure", "Electrical items", "Input power term"]
         },
 
+        TimingTask: {
+            tips: ["Please select the test object", "New objects cannot be compared"]
+        },
+
         linkage: {
             prompt:{
                 title: '联动参数'
@@ -839,7 +837,14 @@ const en = {
         "New success",
         "Delete the success",
         "The update is successful",
-        "Select at least two items for operation"
+        "Select at least two items for operation",
+        "Wrong password format, at least six letters + numbers",
+        "Error in mailbox format",
+        "Wrong number",
+        "Parameters cannot be null",
+        "Check at least one contact group",
+        "Please join the equipment first",
+        "Make sure that each parameter has at least one choice"
     ]
 }
 export default en;

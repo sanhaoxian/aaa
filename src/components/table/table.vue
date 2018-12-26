@@ -50,7 +50,7 @@
                 <div class="device_filter" v-if='operate.filter'>
                     <form >
                         <div class="layui-form-item" >
-                            <label class="layui-form-label">机房</label>
+                            <label class="layui-form-label">{{$t('Table.devices.filter_label[0]')}}</label>
                             <div class="layui-input-inline">
                             <select name="hgid">
                                 <option value=""></option>
@@ -59,13 +59,13 @@
                             </div>
                         </div>
                         <div class="layui-form-item" >
-                                <label class="layui-form-label">查询类别</label>
+                                <label class="layui-form-label">{{$t('Table.devices.filter_label[1]')}}</label>
                                 <div class="layui-input-inline">
                                 <select name="class">
                                     <option value=""></option>
-                                    <option value="name">设备名称</option>
-                                    <option value="driver">设备驱动</option>
-                                    <option value="ip">设备IP</option>
+                                    <option value="name">{{$t('Table.devices.filter_label[2]')}}</option>
+                                    <option value="driver">{{$t('Table.devices.filter_label[3]')}}</option>
+                                    <option value="ip">{{$t('Table.devices.filter_label[4]')}}</option>
                                 </select>
                                 </div>
                             </div>
@@ -73,7 +73,7 @@
                             <input type="text" name="key" autocomplete="off" class=" layui-input-inline layui-input text-input">
                         </div>
                         <div class="layui-form-item">
-                            <a class="layui-btn layui-btn-normal" @click="filter_device()">搜索</a>
+                            <a class="layui-btn layui-btn-normal" @click="filter_device()">{{$t('Table.devices.filter_btn[0]')}}</a>
                         </div>
                     </form>
                 </div>
@@ -239,19 +239,19 @@
                         <div class="layui-form-item" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[7]')}}</label>
                             <div class="layui-input-block">
-                                <input type="password" name="oldpwd" lay-verify="title" autocomplete="off" placeholder="密码长度为3-20位" class="layui-input">
+                                <input type="password" name="oldpwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[1]')" class="layui-input">
                             </div>
                         </div>
                         <div class="layui-form-item" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[8]')}}</label>
                             <div class="layui-input-block">
-                                <input type="password" name="newpwd" lay-verify="title" autocomplete="off" placeholder="请保持两次密码输入一致" class="layui-input">
+                                <input type="password" name="newpwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[1]')" class="layui-input">
                             </div>
                         </div>
                         <div class="layui-form-item" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[9]')}}</label>
                             <div class="layui-input-block">
-                                <input type="password" name="renewpwd" lay-verify="title" autocomplete="off" placeholder="请保持两次密码输入一致" class="layui-input">
+                                <input type="password" name="renewpwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[2]')" class="layui-input">
                             </div>
                         </div>
                     </div>
@@ -777,7 +777,6 @@ export default {
                                     $('.periodTips').bind('mouseover', (e)=>{return false});
                                     $('td div.layui-table-cell').bind('mouseover', (e)=>{
                                         let value = $(e.target)[0].innerText
-                                        // console.log("悬浮数据", $(e.target).parent().data('field'));
                                         if(value==""||$(e.target).parent().data('field')=='Name'||$(e.target).parent().data('field')=='Alias'){return false}
                                         
                                         $(e.target).parent().css('position', 'relative')
@@ -816,14 +815,20 @@ export default {
         // 渲染，重载数据表格
         renderTable(tdata) {
             let vm = this;
+            let limit = 10, height = "";
+            if(vm.sort=='hostGroup'||vm.sort=='user'||vm.sort=='contactGroup'||vm.sort=='contacts'||
+                vm.sort=='period'||vm.sort=='timedTask'||vm.sort=='leftMenu'){
+                limit = 100;
+                height = "full-300";
+            }
             let opts = {
                 elem: '#'+vm.sort, 
                 cols: [vm.config[vm.sort].cols],
                 data: tdata,
                 even: true,
                 page: false,
-                limit:  (vm.sort=='hostGroup'&& 100) || 10,
-                height: (vm.sort=="hostGroup"&&"full-300") || "",
+                limit:  limit,
+                height: height,
                 size: "lg",
                 skin: "set-table",
                 done(res) {
@@ -998,7 +1003,7 @@ export default {
                         };
                         // 验证邮箱格式
                         let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式;
-                        if(!reg.test(res.User2)){return vm.errorMsg('邮箱格式错误'); return false}
+                        if(!reg.test(res.User2)){return vm.errorMsg(vm.$t('Tips[9]')); return false}
                     }else{
                         res = vm.config[vm.sort].submitFile('add', postData);
                         if(vm.sort== 'forward'){
@@ -1008,7 +1013,6 @@ export default {
                             return 
                         }
                         if(!res.feedback.status){ vm.errorMsg(res.feedback.msg); return false; }
-                        console.log(res);
                     }
                     // 统一向后台发送数据，并且重新刷新表格数据。
                     if(vm.sort== 'contacts'){
@@ -1016,26 +1020,38 @@ export default {
                         .then((res)=>{
                             if(res.body.status){
                                 vm.successMsg(res.body.msg)
+                                layer.close(index);
                             }else{
                                 vm.errorMsg(res.body.msg)
+                                layer.close(index);
                             }
                         },(err)=>{
                             vm.errorMsg(err.body.error)
                         });
                     }else{
+                        if(vm.sort=='user'){
+                            let reg = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
+                            let result = reg.test(res.data.pwd);
+                            if(!result){
+                                vm.errorMsg(vm.$t('Tips[8]'))
+                                return false
+                            }
+                        }
                         vm.$http.post(vm.config[vm.sort].onSubmit('create'), res.data)
                         .then((res)=>{
                             if(res.body.status){
                                 vm.getTableData();
                                 vm.successMsg(res.body.msg)
+                                layer.close(index);
                             }else{
                                 vm.errorMsg(res.body.msg)
+                                layer.close(index);
                             }
                         },(err)=>{
                             console.log(err.body);
                         });
                     }
-                    layer.close(index);
+                    
                 },
                 btn2: function(index, layero) {
                     let res;
@@ -1049,7 +1065,7 @@ export default {
                         };
                         // 验证邮箱格式
                         let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式;
-                        if(!reg.test(res.User2)){return vm.errorMsg('邮箱格式错误123'); return false};
+                        if(!reg.test(res.User2)){return vm.errorMsg(vm.$t('Tips[9]')); return false};
                         vm.$http.post('/config/rest/Resources/'+res.Id, res)
                         .then((res)=>{
                             if(!res.status){
@@ -1060,7 +1076,6 @@ export default {
                             vm.errorMsg(err.body)
                         });
                     }else{
-                        console.log("执行了这里");
                         layer.close(index);
                     }
                 }
@@ -1157,7 +1172,7 @@ export default {
                             });
                         })
                     }
-                   
+
                     layui.table.reload(vm.sort, {
                         data: vm.Tdata
                     })
@@ -1172,10 +1187,7 @@ export default {
         // 更新机房，保存机房数据
         updated() {
             let vm = this;
-            console.log();
-            // if($('.modifyFlag span').length<=0){
-            //     return false;
-            // }
+            
             if(vm.updateGroup.length!=0){
                 let err = false;
                 $.each(vm.updateGroup, (i, e)=>{
@@ -1297,7 +1309,7 @@ export default {
         test() {
             let data = this.currentObj;
             if(data.length<=0){
-                this.errorMsg("请选择测试对象", 3000)
+                this.errorMsg(vm.$t('mMore.TimingTask.tips[0]'), 3000)
             }
             for(let i=0; i<data.length; i++){
                 this.$http.post('/config/rest/ControlTasks/'+data[i].Id+'?to_do=execute')
@@ -1311,9 +1323,6 @@ export default {
         },
         compared(){
             let vm = this;
-            // console.log($('.compared').siblings());
-            // $('.compared').siblings().attr('disabled', true)
-            // $('.compared').siblings().addClass('layui-btn-disabled')
             if(this.currentObj.length<2){
                 this.errorMsg(vm.$t('Table.Box.comcontrast.timedTask.tips[0]'));
                 return false;
@@ -1327,7 +1336,7 @@ export default {
                     return false;
                 }
             });
-            if(!go){vm.errorMsg("新增对象不能对比");return false}
+            if(!go){vm.errorMsg(vm.$t('mMore.TimingTask.tips[1]'));return false}
             /************************************************* */
             this.compareVisible = !this.compareVisible;
             if(this.compareVisible){
@@ -1568,6 +1577,7 @@ export default {
                                 if(e.name.indexOf('host')>=0){data.hostgroups.push({id: e.value})};
                                 if(e.name.indexOf('contact')>=0){data.contactgroups.push({id: e.value})};
                             })
+                            
                             vm.$http.post(vm.config[vm.sort].onSubmit('update'), data)
                             .then((res)=>{
                                 if(res.body.status){
@@ -1593,25 +1603,33 @@ export default {
                                         
                                         return false
                                     }
+                                    let reg = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
+                                    let result = reg.test(changePwd.newpwd);
+                                    if(!result){
+                                        vm.errorMsg(vm.$t('Tips[8]'));
+                                        return false
+                                    }
+                                    
                                     vm.$http.post(vm.config[vm.sort].onSubmit('changepwd'), changePwd)
                                     .then((res)=>{
                                         if(res.body.status){
                                             vm.successMsg(res.body.msg);
                                             vm.getTableData();
                                             vm.currentObj = []
-                                            layer.close(index);
                                         }else{
                                             vm.errorMsg(res.body.msg);
                                             vm.currentObj = []
                                         }
+                                        layer.close(index);
                                         vm.reSetPwd = false;
                                         $('#userEditBox').find('form')[0].reset();
                                     },(err)=>{
                                         vm.errorMsg(err.body.msg);
                                         vm.currentObj = []
                                         $('#userEditBox').find('form')[0].reset();
+                                        layer.close(index);
                                     });
-                                    // layer.close(index);
+                                    
                                 }
                             },(err)=>{
                                 vm.errorMsg(err.body.msg);
@@ -1663,7 +1681,7 @@ export default {
             layui.table.on('edit('+vm.sort+')', function(obj){
                 if(obj.field=='name' || obj.field=='Name'){
                     if(obj.value==""){
-                        vm.errorMsg("参数不能为空");
+                        vm.errorMsg(vm.$t('Tips[11]'));
                         return false
                     }
                 }
@@ -1671,11 +1689,11 @@ export default {
                 if(vm.sort=='contacts'){
                     if(obj.field=='Email'){
                         let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式;
-                        if(!reg.test(obj.value)){return vm.errorMsg('邮箱格式错误')}
+                        if(!reg.test(obj.value)){return vm.errorMsg(vm.$t('Tips[9]'))}
                     }
                     if(obj.field=='Address1'||obj.field=='Address2'){
                         let reg = new RegExp("^[1][3,4,5,7,8][0-9]{9}$");
-                        if(!reg.test(obj.value)){return vm.errorMsg("号码有误")}
+                        if(!reg.test(obj.value)){return vm.errorMsg(vm.$t('Tips[10]'))}
                     }
                 }
                 if(obj.data.edit=='add'){
@@ -1842,7 +1860,7 @@ export default {
                            
                             template = `
                                 <div class="layer_checkOrder_block" style="display: flex; flex-direction: column; justify-content: space-around;">
-                                    <p>${index+1}级报警</p>
+                                    <p>${index+1}${vm.$t('Table.monitoring.checkOrder_label[0]')}</p>
                                     <div style="display: flex">
                                         <div style="margin: 5px">
                                             <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='CheckCommandParameters${index+1}' lay-skin='primary' value='' title='' />
@@ -2250,7 +2268,7 @@ export default {
             let vm = this;
             if( obj.event == 'setContactgroups' ){
                 if(isEmptyObject(data)){
-                    vm.errorMsg("至少勾选一个联系人组")
+                    vm.errorMsg(vm.$t('Tips[12]'))
                     return false;
                 }else{
                     let contact = [];
@@ -2408,17 +2426,9 @@ export default {
                         vm.updateGroup.push(e);
                     }
                 })
-                console.log(vm.updateGroup);
-                console.log("当前",order);
                 /********** */
 
             }else if(obj.event == 'serverMore'){
-                // $.each(data, (j, f)=>{
-                //     if(f.name=="NormalCheckInterval"){
-                //         f.value = f.value/vm.timeBase;
-                //     }
-                //     obj.data[f.name] = f.value
-                // })
                 for(let key in data){
                     if("NormalCheckInterval"==key || key=="NotificationInterval"){
                         obj.data[key] = data[key]/vm.timeBase;
@@ -2694,7 +2704,7 @@ export default {
                 yes: function(index, layero) {
                     var bkb = $(".layui-layer-content .C tbody tr"), i, j, k, l, code, A, B, C, flag = true;
                     if(bkb.length<=0){
-                        layer.msg('请先加入设备',{time:2000}); 
+                        layer.msg(vm.$t('Tips[13]'),{time:2000}); 
                         return false;
                     }
                     for (i = 0; i < bkb.length; i++) {
@@ -2886,7 +2896,7 @@ export default {
             }
             let opt = {
                 type: 1,
-                title: '选择设备命令',
+                title: vm.$t('Table.Box.Add.device.selNotification.title'),
                 content: `<div id="selNotification" style="overflow: hidden"></div>`,
                 area: ['546px', '319px'],
                 btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
@@ -2898,7 +2908,7 @@ export default {
                         data: data,
                         cols: [[ 
                             {type: "checkbox",align: "center"},
-                            {field: 'Name', title: '关联命令', align: "center"},
+                            {field: 'Name', title: vm.$t('Table.Box.Add.device.selNotification.table_td[0]'), align: "center"},
                         ]]
                     });
                 },
@@ -3076,7 +3086,7 @@ export default {
                             };
                             if(d.HostNotificationCommands.length<=0 || d.ServiceNotificationCommands.length<=0){
                                 //请保证每个参数都至少选择一项
-                                vm.errorMsg("请保证每个参数都至少选择一项");
+                                vm.errorMsg(vm.$t('Tips[14]'));
                                 return false;
                             }
                             d.edit=='add'?'':d.edit='update';
@@ -3398,10 +3408,6 @@ export default {
         }
         /*************************************************************************/
     },
-    deactivated() {
-        console.log("132");
-        vm.updateGroup = []
-    }
 }
 
 </script>
