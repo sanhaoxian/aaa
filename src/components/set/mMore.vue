@@ -12,13 +12,13 @@
                     <li>{{$t('mMore.tabTitle[6]')}}</li>
                     <li>{{$t('mMore.tabTitle[7]')}}</li>
                     <li @click="renderForward">{{$t('mMore.tabTitle[8]')}}</li>
-                    <!-- <li @click="renderLinkage">{{$t('mMore.tabTitle[9]')}}</li> -->
+                    <li @click="renderLinkage">{{$t('mMore.tabTitle[9]')}}</li>
                     <li @click="renderSoftware" v-if="visible_software">{{$t('mMore.tabTitle[10]')}}</li>
                 </ul>
-                <div class="layui-tab-content">
+                <div class="layui-tab-content" style="height: 750px">
                     <div class="layui-tab-item"></div>
                     <!-- 全局参数页面—— -->
-                    <div class="layui-tab-item global layui-show">
+                    <div class="layui-tab-item global layui-show" style="height: 100%; overflow-y: auto; overflow-x: hidden">
                         <div class="layui-form">
                             <table>
                                 <tr>
@@ -137,6 +137,7 @@
                             <button class="layui-btn layui-btn-disabled" disabled="true" @click="reducingFun">{{$t('mMore.backup.btn[0]')}}</button>
                             <button class="layui-btn active" @click="backupFun">{{$t('mMore.backup.btn[1]')}}</button>
                             <button class="layui-btn layui-btn-disabled" disabled="true" @click="importDriveFun">{{$t('mMore.backup.btn[2]')}}</button>
+                            <button class="layui-btn layui-btn-disabled" disabled="true" >{{$t('mMore.backup.btn[3]')}}</button>
                         </div>
                     </div>
                     <!-- 左边菜单栏 -->
@@ -241,9 +242,9 @@
                         <vtable sort='forward' ref="forwardTab"></vtable>
                     </div>
                     <!-- 联动参数 -->
-                    <!-- <div class="layui-tab-item linkage">
+                    <div class="layui-tab-item linkage">
                         <vtable sort='linkage' ref="linkage"></vtable>
-                    </div> -->
+                    </div>
                     <!-- 软件信息 -->
                     <div class="layui-tab-item software">
                         <div class="layui-form">
@@ -1098,7 +1099,7 @@ div[class$="-Type"]
     overflow-y auto
     padding 20px 40px 0 40px
     overflow-x hidden
-    .dataForm 
+    .dataForm
         .layui-tab
             margin: 0
             .layui-tab-content

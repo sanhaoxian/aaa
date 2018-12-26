@@ -34,7 +34,8 @@ export default  {
         style: "cursor:pointer",
         templet() {
           return `<i class="glyphicon glyphicon-edit" aria-hidden="true"></i>`
-        }
+        },
+        event: "bgEdit"
       },
     ],
     laypage: {
@@ -1770,7 +1771,8 @@ export default  {
       delete: true,
       modify:true,
       application: true,
-      batchEdit: true
+      batchEdit: true,
+      filter: true
     },
     format: function(data) {
       return data.linkages;

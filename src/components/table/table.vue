@@ -47,7 +47,7 @@
                     <i class="glyphicon glyphicon-adjust"></i>
                     {{$t('Table.Operate_Btn_list[10]')}}
                 </button>
-                <div class="device_filter" v-if='operate.filter'>
+                <div class="device_filter" v-if='sort=="devices"&&operate.filter'>
                     <form >
                         <div class="layui-form-item" >
                             <label class="layui-form-label">{{$t('Table.devices.filter_label[0]')}}</label>
@@ -59,21 +59,43 @@
                             </div>
                         </div>
                         <div class="layui-form-item" >
-                                <label class="layui-form-label">{{$t('Table.devices.filter_label[1]')}}</label>
-                                <div class="layui-input-inline">
+                            <label class="layui-form-label">{{$t('Table.devices.filter_label[1]')}}</label>
+                            <div class="layui-input-inline">
                                 <select name="class">
                                     <option value=""></option>
                                     <option value="name">{{$t('Table.devices.filter_label[2]')}}</option>
                                     <option value="driver">{{$t('Table.devices.filter_label[3]')}}</option>
                                     <option value="ip">{{$t('Table.devices.filter_label[4]')}}</option>
                                 </select>
-                                </div>
                             </div>
+                        </div>
                         <div class="layui-form-item">
                             <input type="text" name="key" autocomplete="off" class=" layui-input-inline layui-input text-input">
                         </div>
                         <div class="layui-form-item">
                             <a class="layui-btn layui-btn-normal" @click="filter_device()">{{$t('Table.devices.filter_btn[0]')}}</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="linkage_filter" v-if='sort=="linkage"&&operate.filter'>
+                    <form >
+                        <div class="layui-form-item" >
+                            <div class="layui-input-inline">
+                                <select name="xxx">
+                                    <option value=""></option>
+                                    <option value="1">名称</option>
+                                    <option value="2">备注</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <input type="text" name="key" autocomplete="off" class="layui-input-inline layui-input text-input" placeholder="请输入搜索内容">
+                        </div>
+                        <div class="layui-form-item">
+                            <a class="layui-btn layui-btn-normal" @click="filter_device()">{{$t('Table.devices.filter_btn[0]')}} <i class="layui-icon layui-icon-search"></i></a>
+                        </div>
+                        <div class="layui-form-item">
+                            <a class="layui-btn" @click="filter_device()">清除<i class="layui-icon layui-icon-refresh"></i></a>
                         </div>
                     </form>
                 </div>
@@ -2248,6 +2270,9 @@ export default {
                     // vm.$emit('extendHosts', 'hello,world!', this)
                     let res = vm.config[vm.sort].extend(obj.data);
                     openLayer(res, obj);
+                }else if(obj.event == 'bgEdit'){
+                    let url = window.location.protocol + "//" + window.location.host + "/public/ui/ve/index.html?EDIT_MODE=true&hostgroup="+obj.data.Name;
+                    window.open(encodeURI(url), '_blank');
                 }
             })
             // 监听表格复选
@@ -3706,12 +3731,22 @@ body
 #table
     .operateBtnList
         display flex
+        position relative
         button
             box-shadow 3px 3px 15px rgba(0, 0, 0, 0.2) inset, -3px -3px 15px rgba(0, 0, 0, 0.2) inset;
             border-radius 6px;
         .device_filter
             form
                 display flex
+        .linkage_filter
+            position absolute
+            right 0
+            form
+                display flex
+                justify-content space-between
+                .layui-form-item
+                    width auto
+                    margin 5px
         .layui-form-item
             display flex
             .layui-form-label

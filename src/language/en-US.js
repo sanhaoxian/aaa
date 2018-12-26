@@ -777,7 +777,7 @@ const en = {
 
         backup: {
             label: "Please select the setting data you want to restore",
-            btn: ["reduce", "Backup", "Import driver"]
+            btn: ["reduce", "Backup", "Import driver", "Import Modular"]
         },
         
         webAlarm: {
