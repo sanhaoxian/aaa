@@ -29,7 +29,8 @@ export default{
     data() {
         return {
             markId: '',
-            percentage: 0
+            percentage: 0,
+            // applicating: false
         }
     },
     mounted() {
@@ -39,7 +40,30 @@ export default{
         })
         layui.element.on('tab(setting-devices)', function(data){
             if(data.index=='0'){
-                vm.$router.push({path: '/setting'})
+                if(vm.$store.state.applicating==1){
+                    $(this).removeClass('layui-this')
+                    $(this).next().addClass('layui-this');
+                    $('.layui-tab-item').eq(0).removeClass('layui-show');
+                    $('.layui-tab-item').eq(1).addClass('layui-show');
+                    vm.errorMsg("系统正在执行应用设置中，请稍后")
+                }else{
+                     vm.$router.push({path: '/setting'})
+                }
+            }
+        });
+        window.onbeforeunload = function(){
+            if(this.$store.state.applicating==1){
+                return '系统可能不会保存您所做的更改。';
+            }else{
+                return true
+            }
+        }
+        this.$router.beforeEach((to, form, next)=>{
+            if(this.$store.state.applicating==1){
+                vm.errorMsg("系统正在执行应用设置中，请稍后")
+                next(false);
+            }else{
+                next();
             }
         });
     },
@@ -59,6 +83,7 @@ export default{
                         vm.markId = res.body.Id;
                         $('.layui-progress-bar').addClass('progressBar');
                         vm.play();
+                        vm.$store.commit('changeApplication', 1);
                     });
                     vm.percentage = vm.percentage + parseInt(Math.random()*20, 10);
                     layui.element.progress('demo', vm.percentage+'%');
@@ -92,12 +117,37 @@ export default{
                     }else{
                         // '应用执行完成';
                         $('.layui-progress-bar').css('background-color', '#5cb85c');
+                        vm.$store.commit('changeApplication', 2)
                         // 改变进度条的颜色
                     }
                 }
             });
         },
-    }
+        errorMsg(msg, second) {
+            layui.layer.open({
+                type: 1,
+                offset: 'rt',
+                title: '',
+                // content: '<img src="/public/images/currency/shield_error.ico"/>'+msg,
+                content: msg,
+                btn: '',
+                skin: 'errorMsg',
+                shade: 0,
+                time: second?second:3000,
+                closeBtn:0,
+                success(layero, index){
+                    let top, length = $(".errorMsg").length;
+                    $(".errorMsg").each((i, e)=>{
+                        top = parseInt($(e).css('top'), 10);
+                        top = (top+100*i)+'px';
+                    });
+                    layui.layer.style(index,{
+                        top: top,
+                    })
+                }
+            });
+        },
+    },
 }
 </script>
 <style lang="stylus">
@@ -183,7 +233,56 @@ export default{
         background-position 0 0
     }
 }
+.set-Table
+    box-shadow 5px 5px 10px #888, -5px -5px 10px #888
+    hr
+        margin 5px 0 10px 0 
+        height 1px
+        border none
+        border-top 1px dashed #aaa !important
+    .layui-layer-content, .layui-layer-btn 
+        background-color #e7f4fd
+    .layui-layer-content
+        padding 15px
+        span
+            font-size 16px
+            overflow hidden
+            text-overflow ellipsis
+            white-space normal
 
+    .layui-layer-title 
+        background no-repeat 16px center, linear-gradient(to bottom, #329ce5, #2e8bd3)
+        border 1px solid #bababa 
+        color #fff
+    .layui-btn+.layui-btn
+        margin-left 0
+        margin-right 10px
+        
+    .layui-layer-btn .layui-layer-btn0
+        color #fff
+        background-color #f86868
+    .layui-layer-btn
+        display flex
+        justify-content space-around
+        a
+            display inline-block
+            color #fff
+            background-color #82d642
+            border #f86868
+            padding 0 26px
+            font-size 16px
+
+    .layui-form-label
+        width 100px
+        color #425d70
+    .layui-form-item
+        width 90%
+        margin-bottom 5px
+    .layui-form-select dl
+        position fixed
+        left auto
+        top auto
+        min-width 120px
 .set-inquiry 
     box-shadow 5px 5px 10px #bbb, -5px -5px 10px #bbb
     background-color #e7f4fd
@@ -201,10 +300,31 @@ export default{
         font-size 16px
     .layui-layer-btn
         .layui-layer-btn0
-            background-color #82d642
+            background-color #82d642 !important
             border none
         .layui-layer-btn1
             background-color #f86868
             color #fff
-
+.errorMsg 
+    box-shadow none
+    border-radius 10px
+    background-color #e74c3c
+    img
+        width 35px
+        margin-right 20px
+    .layui-layer-title
+        background #e74c3c
+    .layui-layer-content
+        // background-image url("/public/images/currency/shield_error.ico") no-repeat;
+        background #e74c3c url("/public/images/currency/shield_error.ico") no-repeat 4% center / 10%;
+        border none
+        border-radius 10px
+        color #fff
+        width 300px
+        height 90px
+        display flex
+        justify-content space-around
+        align-items center
+        font-size 16px
+        padding 0 20px 0 50px
 </style>

@@ -39,11 +39,11 @@
                     <i class="glyphicon glyphicon-list-alt"></i>
                     {{$t('Table.Operate_Btn_list[8]')}}
                 </button>
-                <button class="layui-btn layui-btn application" v-if="operate.application">
+                <button class="layui-btn layui-btn application" v-if="operate.application" @click="updated()">
                     <i class="glyphicon glyphicon-floppy-disk"></i>
                     {{$t('Table.Operate_Btn_list[9]')}}
                 </button>
-                <button class="layui-btn layui-btn batchEdit" v-if="operate.batchEdit">
+                <button class="layui-btn layui-btn batchEdit" v-if="operate.batchEdit" @click="batch()">
                     <i class="glyphicon glyphicon-adjust"></i>
                     {{$t('Table.Operate_Btn_list[10]')}}
                 </button>
@@ -81,21 +81,21 @@
                     <form >
                         <div class="layui-form-item" >
                             <div class="layui-input-inline">
-                                <select name="xxx">
+                                <select name="key">
                                     <option value=""></option>
-                                    <option value="1">名称</option>
-                                    <option value="2">备注</option>
+                                    <option value="filterByName">名称</option>
+                                    <option value="filterByRemark">备注</option>
                                 </select>
                             </div>
                         </div>
                         <div class="layui-form-item">
-                            <input type="text" name="key" autocomplete="off" class="layui-input-inline layui-input text-input" placeholder="请输入搜索内容">
+                            <input type="text" name="keyValue" autocomplete="off" class="layui-input-inline layui-input text-input" placeholder="请输入搜索内容">
                         </div>
                         <div class="layui-form-item">
-                            <a class="layui-btn layui-btn-normal" @click="filter_device()">{{$t('Table.devices.filter_btn[0]')}} <i class="layui-icon layui-icon-search"></i></a>
+                            <a class="layui-btn layui-btn-normal" @click="filter_linkage()">{{$t('Table.devices.filter_btn[0]')}} <i class="layui-icon layui-icon-search"></i></a>
                         </div>
-                        <div class="layui-form-item">
-                            <a class="layui-btn" @click="filter_device()">清除<i class="layui-icon layui-icon-refresh"></i></a>
+                        <div class="layui-form-item clear_linkage">
+                            <a class="layui-btn" @click="clear_linkage_filter()">清除<i class="layui-icon layui-icon-refresh"></i></a>
                         </div>
                     </form>
                 </div>
@@ -168,6 +168,7 @@
                         <button class="layui-btn" v-for="(it, index) in batchTemp.temp" :key="it" v-show="(index==0)?false:true" @click="changeBtnClick(index)">{{it}}</button>
                     </div>
                 </div>
+                <button hidden lay-submit lay-filter="batchBox">提交</button> 
             </div>
         </div>
         <div v-parent="'body'" v-else-if="sort==='monitoring'" id="batchBox2" hidden>
@@ -190,6 +191,7 @@
                         <button class="layui-btn" v-for="(it, index) in batchTemp.temp" :key="it" v-show="(index==0)?false:true" @click="changeBtnClick(index)">{{it}}</button>
                     </div>
                 </div>
+                <button hidden lay-submit lay-filter="batchBox2">提交</button> 
             </div>
         </div>
         <div v-parent="'body'" v-if="sort=='user'" hidden id="userEditBox">
@@ -577,7 +579,42 @@
                         <textarea name="Remark" placeholder="请输入内容" class="layui-textarea"></textarea>
                     </div>
                 </div>
+                <button hidden lay-submit lay-filter="linkageBoxBtn">提交</button> 
             </form>
+        </div>
+        <div v-parent="'body'" v-if="sort==='linkage'" id="batchBox3" hidden>
+            <div class="layui-form" lay-filter="batchBox3">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[0]')}}</label>
+                    <div class="wordValueBox">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">工作值：</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="WorkValue" lay-verify="number" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">阈值：</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="LimitValue" lay-verify="number" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[1]')}}</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-disabled btn-warning" disabled>{{batchTemp.temp[0]}}</button>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{{$t('Table.Box.Batch.device.label[2]')}}</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-disabled " v-for="(it) in batchTemp.temp" :key="it" disabled>{{it}}</button>
+                    </div>
+                </div>
+                <button hidden lay-submit lay-filter="batchBox33">提交</button> 
+            </div>
         </div>
     </div>
 </template>
@@ -732,12 +769,29 @@ export default {
         filter_device() {
             let vm = this;
             let list = $('.device_filter form').serializeArray(), params={};
+            console.log(list);
             params[list.find(e => e.name=='hgid').name] = list.find(e => e.name=='hgid').value;
             params[list.find(e => e.name=='class').value] = list.find(e => e.name=='key').value;
             vm.curParams = params;
             vm.getTableData('', params)
             vm.curr = 1
+            vm.curParams = [];
             return false
+        },
+        filter_linkage() {
+            let vm = this;
+            let list = $('.linkage_filter form').serializeArray(), params={};
+            params[list.find(e => e.name=='key').value] = list.find(e => e.name=='keyValue').value;
+            vm.curParams = params;
+            // console.log(params);
+            vm.getTableData('', params)
+            vm.curr = 1;
+            vm.curParams = []
+            return false
+        },
+        clear_linkage_filter() {
+            vm.getTableData();
+            vm.getControlActions();
         },
         /* 所有表格中通用方法 */
         // 通用——获取联系人组
@@ -767,6 +821,8 @@ export default {
             let url = vm.config[vm.sort].api;
             if(vm.config[vm.sort].select){
                 url += "?page="+(selectPage?Number(selectPage-1):0)+"&row=10"; 
+            }else{
+                url += "?"
             }
             if(params!=undefined){
                 this.curParams = params;
@@ -854,7 +910,6 @@ export default {
                 size: "lg",
                 skin: "set-table",
                 done(res) {
-                    let changeList = [];
                     for(let i=0; i<res.data.length; i++){
                         if(res.data[i].hasOwnProperty('edit')){
                             $('.layui-table').find('tr[data-index='+i+']').css('color', 'green')
@@ -1296,7 +1351,13 @@ export default {
                                 vm.successMsg(vm.$t('Tips[6]'))
                                 $('.modifyFlag span').remove();
                                 if(vm.sort=='monitoring'){
-                                    return ;
+                                    vm.Tdata.filter((e)=>{
+                                        if(e.hasOwnProperty('edit')){
+                                            delete e.edit;
+                                        }
+                                    });
+                                    vm.renderTable(vm.Tdata);
+                                    return;
                                 }
                                 vm.curr = 1;
                                 vm.getTableData();
@@ -1454,16 +1515,28 @@ export default {
             }else if(vm.sort=='linkage'){
                 tit = '修改联动>>';
                 con = $('#linkageBox');
-                let item = vm.hostgroup.find((item)=>{if(item.Id==Number(vm.currentObj[vm.currentObj.length-1].Id)){return item}});
-                
-                vm.timedTaskAddHost = item.Hosts;
+                /***
+                 * 现在的问题是解决机房里面没有找到适配的设备，即timedTaskAddHost
+                 */
+                let currentHostGroup;
+                vm.hostgroup.filter((e)=>{  
+                    if(e.hasOwnProperty('Hosts')){
+                        e.Hosts.filter((k)=>{
+                            if(k.Id==vm.currentObj[0].HostId){
+                                currentHostGroup = e.Id
+                                vm.timedTaskAddHost = e.Hosts
+                            }
+                        });
+                    }
+                });
+                let item = vm.hostgroup.find((item)=>{if(item.Id==Number(vm.currentObj[vm.currentObj.length-1].HostId)){return item}});
                 vm.$http.get('/api/v1/setting/service?hid='+vm.currentObj[vm.currentObj.length-1].HostId)
                 .then((res)=>{
                     vm.timedTaskAddServices = res.body.data.services;
                     vm.$nextTick(()=>{
                         layui.form.val('linkageBox', {
                             'Name': vm.currentObj[vm.currentObj.length-1].Name,
-                            'hostgroup': vm.currentObj[vm.currentObj.length-1].Id,
+                            'hostgroup': currentHostGroup,
                             'HostId': vm.currentObj[vm.currentObj.length-1].HostId,
                             'ServiceId': vm.currentObj[vm.currentObj.length-1].ServiceId,
                             'WorkValue': vm.currentObj[vm.currentObj.length-1].WorkValue,
@@ -1478,33 +1551,68 @@ export default {
                             skin: 'set-Table',
                             shade:[0.5, '#000'],
                             btn: [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
-                            success: function(){
+                            success: function(layero, index){
                                 vm.$nextTick(()=>{
                                     layui.form.render();
                                 });
+                                layui.form.on('submit(linkageBoxBtn)', function(data){
+                                    let {field}=data
+                                    let currentObj = vm.currentObj[0];
+                                    for(let key in currentObj){
+                                        if(field.hasOwnProperty(key)){
+                                            if(currentObj[key]!=field[key]){
+                                                currentObj[key] = field[key];
+                                            } 
+                                        }
+                                    }
+                                    // console.log("更新", currentObj);
+                                    currentObj.edit = 'update';
+                                    // vm.$http.post(vm.config[vm.sort].onSubmit('update'), currentObj)
+                                    // .then((res)=>{
+                                    //     if(res.body.status){
+                                    //         vm.successMsg(res.body.msg)
+                                    //         vm.getTableData();
+                                    //         vm.currentObj = []
+                                    //     }else{
+                                    //         vm.errorMsg(res.body.msg);
+                                    //         vm.currentObj = []
+                                    //     }
+                                    //     layer.close(index);
+                                    // },(err)=>{
+                                    //     vm.errorMsg(err.body.msg);
+                                    //     layer.close(index);
+                                    // });
+                                    vm.updateGroup.push(currentObj);
+                                    layer.close(index);
+                                    return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+                                });
                             },
                             yes: function(index, layero) {
-                                // 获取弹框的数据
-                                let postData = layero.find('form').serializeArray();
-                                // 调整数据结构 设置用户权限什么的，不涉及修改密码；
+                                $('[lay-filter="linkageBoxBtn"').click()
+                                // // 获取弹框的数据
+                                // let postData = layero.find('form').serializeArray();
+                                // // 调整数据结构 设置用户权限什么的，不涉及修改密码；
 
-                                let data = vm.config[vm.sort].submitFile('update', postData);
-                                data.data.Id = vm.currentObj[vm.currentObj.length-1].Id;
-                                vm.$http.post(vm.config[vm.sort].onSubmit('update'), data.data)
-                                .then((res)=>{
-                                    if(res.body.status){
-                                        vm.successMsg(res.body.msg)
-                                        vm.getTableData();
-                                        vm.currentObj = []
-                                    }else{
-                                        vm.errorMsg(res.body.msg);
-                                        vm.currentObj = []
-                                    }
-                                    layer.close(index);
-                                },(err)=>{
-                                    vm.errorMsg(err.body.msg);
-                                    layer.close(index);
-                                });
+                                // let data = vm.config[vm.sort].submitFile('update', postData);
+                                // console.log(vm.currentObj);
+                                // console.log("提交数据", data);
+                                // // data.data.Id = vm.currentObj[vm.currentObj.length-1].Id;
+                                // console.log(vm.currentObj[vm.currentObj.length-1].Id);
+                                // vm.$http.post(vm.config[vm.sort].onSubmit('update'), data.data)
+                                // .then((res)=>{
+                                //     if(res.body.status){
+                                //         vm.successMsg(res.body.msg)
+                                //         vm.getTableData();
+                                //         vm.currentObj = []
+                                //     }else{
+                                //         vm.errorMsg(res.body.msg);
+                                //         vm.currentObj = []
+                                //     }
+                                //     layer.close(index);
+                                // },(err)=>{
+                                //     vm.errorMsg(err.body.msg);
+                                //     layer.close(index);
+                                // });
                                 
                             },
                             end() { }
@@ -1782,6 +1890,12 @@ export default {
                 // let status = false
                 function openLayer(res, obj, shin){
                     let IDDDDDDDDDDDD=new Date().valueOf()
+                    let btn = [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")];
+                    if(obj.event=="checkOrder"){
+                        btn = [vm.$t("Prompt_btn[0]"),vm.$t("Prompt_btn[2]"), vm.$t("Prompt_btn[1]")]
+                    }else if(obj.event=="overrunOrder"||obj.event=="recoveryOrder"){
+                        btn = []
+                    }
                     layui.layer.open({
                         type: 1,
                         title: res[0],
@@ -1815,6 +1929,16 @@ export default {
                             form.on('submit('+IDDDDDDDDDDDD+')', function(data){
                                 let {field}=data
                                 let mapBooleab=[];
+                                if(obj.event=="checkOrder"){
+                                    for(let i in field){
+                                        let input  = /^[\s]*$/;
+                                        if(input.test(field[i])){
+                                            vm.errorMsg(vm.$t('Tips[11]'));
+                                            return false;
+                                            break;
+                                        }
+                                    }
+                                }
                                 layero.find('input[value="true"]').each((i,el)=> $(el).attr('value') === 'true' && mapBooleab.push($(el).attr('name')))
                                 mapBooleab.forEach(key=>!field.hasOwnProperty(key)&&(field[key]=false))
                                 // 通过区分函数，实现不同的弹框功能
@@ -1827,7 +1951,7 @@ export default {
                             });
                             
                         },
-                        btn: obj.event=="checkOrder"?[vm.$t("Prompt_btn[0]"),vm.$t("Prompt_btn[2]"), vm.$t("Prompt_btn[1]")]:[vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")],
+                        btn: btn,
                         yes: function(index, layero){
                             $('[lay-filter="'+IDDDDDDDDDDDD+'"').click()
                             if($('.modifyFlag').find('span').length==0){
@@ -2255,7 +2379,7 @@ export default {
                     vm.Tdata.splice(index2, 1, obj.data)
                     vm.renderTable(vm.Tdata);
                 }else if(obj.event == 'overrunOrder'){
-                    vm.$http.get('/api/v1/linkage/command?lid='+obj.data.Id+'&type='+1)
+                    vm.$http.get(encodeURI('/api/v1/linkage/command?lid='+obj.data.Id+'&type='+1))
                     .then((res)=>{
                         let temp = vm.config[vm.sort].editOverrun(res.body.data.actions)
                         openLayer(temp, obj);
@@ -2954,9 +3078,9 @@ export default {
             let tem = this.batchTemp.temp.splice(index, 1);
             this.batchTemp.temp.unshift(tem[0]);
         },
-        // z
+        // 
         batch(){
-            let vm = this, content;
+            let vm = this, content, submitBtn;
             let data = this.currentObj;
             if(data.length<2){
                 this.errorMsg(vm.$t('Tips[7]'));
@@ -2965,8 +3089,13 @@ export default {
             if(this.sort=="monitoring"){
                 this.batchTemp.nec = this.batchTemp.nec2;
                 content = $('#batchBox2')
+                submitBtn = 'batchBox2'
+            }else if(this.sort == "linkage"){
+                content = $('#batchBox3');
+                submitBtn = 'batchBox33'
             }else{
-                content = $('#batchBox')
+                content = $('#batchBox');
+                submitBtn = 'batchBox'
             }
             layui.layer.open({
                 type: 1,
@@ -2976,41 +3105,55 @@ export default {
                 btn: [vm.$t('Prompt_btn[0]'), vm.$t('Prompt_btn[1]')],
                 skin: 'set-Table',
                 shade:[0.5, '#000'],
-                yes: function(index, layero) {
-                    let data = layero.find('input').serializeArray();
-                    let refer = null
-                    // 找到参考对象
-                    $.each(vm.currentObj, (i, e)=>{
-                        if((e.Name || e.Description) == vm.batchTemp.temp[0]){
-                            refer = e;
-                        }
-                    });
-                    $.each(vm.Tdata, (i, e)=>{
-                        if((e.Name || e.Description) == vm.batchTemp.temp[0]){
-                            return true;
-                        }else{
-                            $.each(vm.currentObj, (k, g)=>{
-                                if((e.Name || e.Description)==(g.Name || g.Description)){
-                                    if(data.length>0){   // 查找需要设置的值
-                                        $.each(data, (j, f)=>{
-                                            e[f.name] = refer[f.name]
-                                        });
-                                        e.edit = 'update'
-                                        vm.updateGroup.push(e);
-                                    }
+                success: function(layero, index) {
+                    layui.form.val("batchBox3", {
+                        "WorkValue": vm.currentObj[0].WorkValue,
+                        "LimitValue": vm.currentObj[0].LimitValue,
+                    }),
+                    layui.form.on('submit('+submitBtn+')', function(data){
+                        let {field} = data;
+                        let refer = null
+                        // 找到参考对象
+                        $.each(vm.currentObj, (i, e)=>{
+                            if((e.Name || e.Description) == vm.batchTemp.temp[0]){
+                                refer = e;
+                            }
+                        });
+                        if(vm.sort!="linkage"){
+                            $.each(vm.Tdata, (i, e)=>{
+                                if((e.Name || e.Description) == vm.batchTemp.temp[0]){
+                                    return true;
+                                }else{
+                                    $.each(vm.currentObj, (k, g)=>{
+                                        if((e.Name || e.Description)==(g.Name || g.Description)){
+                                            if(field!='undefined'){   // 查找需要设置的值
+                                                for(let k in field){
+                                                    e[k] = refer[k]
+                                                }
+                                                e.edit = 'update'
+                                                vm.updateGroup.push(e);
+                                            }
+                                        }
+                                    })
                                 }
-                            })
+                            });
+                        }else{
+                            
                         }
+                        
+                        layui.table.reload(vm.sort,{
+                            data: vm.Tdata
+                        });
+                        if($('.modifyFlag').find('span').length==0){
+                            $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
+                        };
+                        vm.batchTemp.temp = [];
+                        layer.close(index);
+                        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
                     });
-                    
-                    layui.table.reload(vm.sort,{
-                        data: vm.Tdata
-                    });
-                    if($('.modifyFlag').find('span').length==0){
-                        $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
-                    };
-                    vm.batchTemp.temp = [];
-                    layer.close(index)
+                },
+                yes: function(index, layero) {
+                    $('[lay-filter="'+submitBtn+'"').click()
                 },
                 btn2: function(index, layero){
                     vm.batchTemp.temp = [];
@@ -3023,10 +3166,10 @@ export default {
                 },
             });
             $.each(this.currentObj, (i, e)=>{
-                if(vm.sort=="devices"){
-                    vm.batchTemp.temp.push(e.Name)
-                }else{
+                if(vm.sort=="monitoring"){
                     vm.batchTemp.temp.push(e.Description);
+                }else{
+                    vm.batchTemp.temp.push(e.Name)
                 }
             })
         },
@@ -3664,7 +3807,7 @@ body
         min-width 120px
     ul
         margin 0
-    #batchBox, #batchBox2
+    #batchBox, #batchBox2, #batchBox3
         overflow hidden
         .layui-form-item
             margin 13px auto 0 0
@@ -3692,6 +3835,18 @@ body
             background-color #ff4e00
             background-repeat repeat-x
             background-image linear-gradient(180deg,#f50,#f40)
+    #batchBox3
+        .wordValueBox
+            display flex
+        .layui-form-item
+            margin 0
+        .layui-inline
+            display flex
+            flex-direction column
+            align-items flex-start
+            label
+                padding-left 0
+                text-align left
     .setPeriod_content
         input[type=number]
             border 1px solid #ccc
@@ -3721,6 +3876,8 @@ body
                 .layui-form-item:nth-child(3)
                     .layui-input-block
                         margin 0
+    .orderTable
+        margin-top 0
 .setContactgroups
     .layui-layer-content
         form
@@ -3747,6 +3904,13 @@ body
                 .layui-form-item
                     width auto
                     margin 5px
+                .layui-btn:hover
+                    text-decoration none
+                .clear_linkage
+                    .layui-btn
+                        background #8d8d91
+                i.layui-icon
+                    font-size 14px
         .layui-form-item
             display flex
             .layui-form-label

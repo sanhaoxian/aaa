@@ -353,13 +353,15 @@ export default {
             }
         });
         this.renderEnergy();
-        // this.visible_software = this.$store.state.softwareInfo;
         layui.element.on('tab(setting-devices)', function(data){
             $('.modifyFlag span').remove();
-            ['leftMenuTab', 'timedTaskTab', 'forwardTab'].forEach(i=>vm.$refs[i].clear());
+                ['leftMenuTab', 'timedTaskTab', 'forwardTab', 'linkage'].forEach(i=>vm.$refs[i].clear());
             if(data.index=='0'){
                 vm.$router.push({path: '/setting'})
             }
+        });
+        vm.$nextTick(()=>{
+            layui.element.render('tab')
         });
     },
     methods: {

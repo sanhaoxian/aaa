@@ -8,7 +8,8 @@ const state = {
 	currentRoom: '',
 	path: "总览",
     addressHide: true,
-    softwareInfo: false
+    softwareInfo: false,
+    applicating: 0
 }
 
 /** 面包屑的变更 **/
@@ -24,6 +25,9 @@ const mutations = {
     },
     visible_softwareInfo(state, change) {
         state.softwareInfo = change
+    },
+    changeApplication(state, status){
+        state.applicating = status;
     }
 }
 

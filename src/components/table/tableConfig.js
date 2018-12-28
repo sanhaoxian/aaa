@@ -496,11 +496,13 @@ export default  {
         title: vm.$t('Table.monitoring.tableTH[3]'),
         align: "center",
         templet(d) {
-          let res = '';
+          let res = '', guize = /^[/s]*$/;
           for(let i=0; i<d.CheckCommandParameters.length; i++){
-            res += d.CheckCommandParameters[i]+"!"
+            if(!guize.test(d.CheckCommandParameters[i])){
+                res += "!"+d.CheckCommandParameters[i]
+            }
           }
-          return 'ped!'+ res +`<i class="glyphicon glyphicon-edit" aria-hidden="true"></i>`
+          return 'ped'+ res +`<i class="glyphicon glyphicon-edit" aria-hidden="true"></i>`
         },
         style: "cursor: pointer",
         event: "checkOrder"
@@ -976,7 +978,7 @@ export default  {
           if(d.ContactGroups){
             if(d.ContactGroups.length>0){
               $.each(d.ContactGroups, (i, e)=>{
-                res += e.Name+','
+                i==d.ContactGroups.length-1?res += e.Name:res += e.Name+','
               });
             }
           }else{
@@ -1070,14 +1072,14 @@ export default  {
         HostNotificationOnDown: true,
         HostNotificationOnFlapping: false,
         HostNotificationOnRecovery: true,
-        HostNotificationOnScheduledDowntime: false,
-        HostNotificationOnUnreachable: false,
+        HostNotificationOnScheduledDowntime: true,
+        HostNotificationOnUnreachable: true,
         HostNotificationPeriod: 79,
         HostNotificationsEnabled: true,
         RetainNonstatusInformation: false,
         RetainStatusInformation: false,
         ServiceNotificationCommands: [],
-        ServiceNotificationOnCritical: false,
+        ServiceNotificationOnCritical: true,
         ServiceNotificationOnFlapping: false,
         ServiceNotificationOnRecovery: true,
         ServiceNotificationOnUnknown: false,
@@ -1904,11 +1906,17 @@ export default  {
       return res=['恢复命令', res]
     },
     submitFile(type, data) {
-      return data
+        console.log("传过来的", data);
+        return data
     },
     onSubmit(edit, id) {
-      if(edit=='delete'){return '/api/v1/linkage/delete'}
-      return '/api/v1/linkage/create';
+      if(edit=='delete'){
+            return '/api/v1/linkage/delete'
+      }else if(edit=='update'){
+            return '/api/v1/linkage/update'
+      }else{
+            return '/api/v1/linkage/create'
+      }
     }
   }
 }
