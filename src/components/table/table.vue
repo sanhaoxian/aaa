@@ -95,7 +95,7 @@
                             <a class="layui-btn layui-btn-normal" @click="filter_linkage()">{{$t('Table.devices.filter_btn[0]')}} <i class="layui-icon layui-icon-search"></i></a>
                         </div>
                         <div class="layui-form-item clear_linkage">
-                            <a class="layui-btn" @click="clear_linkage_filter()">清除<i class="layui-icon layui-icon-refresh"></i></a>
+                            <a class="layui-btn" @click="clear_linkage_filter($event)">清除<i class="layui-icon layui-icon-refresh"></i></a>
                         </div>
                     </form>
                 </div>
@@ -109,7 +109,7 @@
             <div class="A">
                 <ul>
                     <li v-for='sorts01 in sorts' :key="sorts01.Name">
-                        <div v-on:click="spread($event)"> <span></span> {{sorts01.Name}}</div>
+                        <div v-on:click="spread($event)"> <span > </span> {{sorts01.Name}}</div>
                         <ul>
                             <li v-for='sorts02 in sorts01.sorts' :key="sorts02.Name">
                                 <div v-on:click="spread($event)"><span></span> {{sorts02.Name}}</div>
@@ -707,6 +707,7 @@ export default {
                 Id: null,
                 WorkValue: null,
             },
+            linkageAddStatus: 0,
             compareVisible: false,
             device_filter: false,
             oldTab: 0
@@ -789,7 +790,9 @@ export default {
             vm.curParams = []
             return false
         },
-        clear_linkage_filter() {
+        clear_linkage_filter(e) {
+            $(e.target).parent().prevAll().find('select[name="key"]').val("");
+            $(e.target).parent().prevAll().find('input[name="keyValue"]').val("");
             vm.getTableData();
             vm.getControlActions();
         },
@@ -969,6 +972,7 @@ export default {
                 btn = [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")];
                 con = vm.config[vm.sort].editAdd();
             }else if(vm.sort == 'linkage'){
+                vm.linkageAddStatus = 0
                 tit = '新增联动>>';
                 btn =['确定', '取消'];
                 con = $('#linkageBox');
@@ -1018,6 +1022,16 @@ export default {
                             });
                         });
                     }else if(vm.sort=="linkage"){
+                        layui.form.val('linkageBox', {
+                            "Name": "",
+                            "hostgroup": "",
+                            "HostId": "",
+                            "ServiceId": "",
+                            "WorkValue": "",
+                            "LimitValue": "",
+                            "Remark": ""
+                        })
+                        vm.linkageAdd.Actions = []
                         layui.form.on('select(linkageAdd)', function(data){
                             if(data.elem.name=='hostgroup'){
                                 vm.timedTaskAddHost = vm.hostgroup.find((item)=>{if(item.Id==Number(data.value)){return item}}).Hosts;
@@ -1513,6 +1527,7 @@ export default {
                     'Hostgroup': vm.currentObj[vm.currentObj.length-1].Hostgroup
                 })
             }else if(vm.sort=='linkage'){
+                vm.linkageAddStatus = 1
                 tit = '修改联动>>';
                 con = $('#linkageBox');
                 /***
@@ -1540,7 +1555,8 @@ export default {
                             'HostId': vm.currentObj[vm.currentObj.length-1].HostId,
                             'ServiceId': vm.currentObj[vm.currentObj.length-1].ServiceId,
                             'WorkValue': vm.currentObj[vm.currentObj.length-1].WorkValue,
-                            'LimitValue': vm.currentObj[vm.currentObj.length-1].LimitValue
+                            'LimitValue': vm.currentObj[vm.currentObj.length-1].LimitValue,
+                            'Remark': vm.currentObj[vm.currentObj.length-1].Remark
                         })
                         layer.open({
                             type: 1,
@@ -1565,23 +1581,7 @@ export default {
                                             } 
                                         }
                                     }
-                                    // console.log("更新", currentObj);
                                     currentObj.edit = 'update';
-                                    // vm.$http.post(vm.config[vm.sort].onSubmit('update'), currentObj)
-                                    // .then((res)=>{
-                                    //     if(res.body.status){
-                                    //         vm.successMsg(res.body.msg)
-                                    //         vm.getTableData();
-                                    //         vm.currentObj = []
-                                    //     }else{
-                                    //         vm.errorMsg(res.body.msg);
-                                    //         vm.currentObj = []
-                                    //     }
-                                    //     layer.close(index);
-                                    // },(err)=>{
-                                    //     vm.errorMsg(err.body.msg);
-                                    //     layer.close(index);
-                                    // });
                                     vm.updateGroup.push(currentObj);
                                     layer.close(index);
                                     return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
@@ -1589,31 +1589,7 @@ export default {
                             },
                             yes: function(index, layero) {
                                 $('[lay-filter="linkageBoxBtn"').click()
-                                // // 获取弹框的数据
-                                // let postData = layero.find('form').serializeArray();
-                                // // 调整数据结构 设置用户权限什么的，不涉及修改密码；
-
-                                // let data = vm.config[vm.sort].submitFile('update', postData);
-                                // console.log(vm.currentObj);
-                                // console.log("提交数据", data);
-                                // // data.data.Id = vm.currentObj[vm.currentObj.length-1].Id;
-                                // console.log(vm.currentObj[vm.currentObj.length-1].Id);
-                                // vm.$http.post(vm.config[vm.sort].onSubmit('update'), data.data)
-                                // .then((res)=>{
-                                //     if(res.body.status){
-                                //         vm.successMsg(res.body.msg)
-                                //         vm.getTableData();
-                                //         vm.currentObj = []
-                                //     }else{
-                                //         vm.errorMsg(res.body.msg);
-                                //         vm.currentObj = []
-                                //     }
-                                //     layer.close(index);
-                                // },(err)=>{
-                                //     vm.errorMsg(err.body.msg);
-                                //     layer.close(index);
-                                // });
-                                
+                                vm.linkageAddStatus = 0
                             },
                             end() { }
                         });
@@ -1849,6 +1825,7 @@ export default {
                     }
                 })
                 if(index>=0){
+                    console.log(index);
                     vm.updateGroup.splice(index, 1)
                 }
                 vm.updateGroup.push(data);
@@ -2087,53 +2064,60 @@ export default {
                     vm.setPeriod(obj);
                 }else if(obj.event == 'selectChange'){
                     // 监听下拉选择框的事件
-                    
-                    layui.form.on('select(sel)', function(data){
-                        
+                    layui.form.on('select', function(data){
                         if(obj.data[data.elem.name]==data.value){
                             return;
                         }else{
                             // 筛选一下是否有重复
-                            let index;
+                            let index, index2;
                             if(vm.updateGroup.length>0){
                                 $.each(vm.updateGroup, (i, e)=>{
-                                    if(e.Id==obj.data.Id){
-                                        index = i;
+                                    if(e.hasOwnProperty('Id')){
+                                        if(e.Id==obj.data.Id){
+                                            index = i;
+                                        }
+                                    }else{
+                                        if(e.id==obj.data.id){
+                                            index = i;
+                                        }
                                     }
                                 })
                             }
                             if(Number(index)>=0){
-                                obj.data = '';
-                                obj.data = vm.updateGroup[index];
+                                // obj.data = '';
+                                // obj.data = vm.updateGroup[index];
                                 vm.updateGroup.splice(index, 1);
                             }
-
+                           
                             //修改
                             if(vm.sort=='devices'){
                                 let key = data.elem.name;
-                                obj.update({
-                                    key: [{Id: data.value}]
-                                });
-                                obj.data[data.elem.name] = [{Id: data.value}];
+                                // obj.update({
+                                //     key: [{Id: data.value}]
+                                // });
+                                console.log("选取的属性", data.elem.name);
+                                console.log("选取的机房", data.value);
+                                obj.data.hostgroups = [];
+                                obj.data.hostgroups.push(data.value);
                             }else{
                                 obj.data[data.elem.name] = data.value;
                             }
-                            let index2;
+
                             $.each(vm.Tdata, (i,e)=>{
                                 if(e.Id==obj.data.Id){
                                     return index2 = i
                                 }
                             })
+                            obj.data.edit=='add'?"":obj.data.edit = 'update'
                             vm.Tdata.splice(index2, 1, obj.data)
-                            // vm.renderTable(vm.Tdata);
-                            obj.data.edit = 'update'
                             $(obj.tr).addClass('change')
-
-                            layui.table.reload(vm.sort,{
-                                data: vm.Tdata
-                            })
+                            if(vm.sort!='devices'){
+                                layui.table.reload(vm.sort,{
+                                    data: vm.Tdata
+                                })
+                            }
                             // 加入到更新数组
-                           
+                            console.log(obj.data.Hostgroups);
                             vm.updateGroup.push(obj.data);
                             if($('.modifyFlag').find('span').length==0){
                                 $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
@@ -2890,8 +2874,8 @@ export default {
                                     let tempData;
                                     tempData = vm.config[vm.sort].format(y.body.data, vm.hostgroup, vm.contactsList);
                                     $.each(tempData, (i,e)=>{
-                                        e.edit = 'add',
-                                        e.id = new Date().valueOf(),
+                                        e.edit = 'add';
+                                        e.id = Math.random()*10000;
                                         vm.updateGroup.push(e);
                                     })
                                     vm.Tdata = tempData.concat(vm.Tdata);
@@ -2923,8 +2907,14 @@ export default {
         
         // 设备管理——设备列表展开 
         spread(x) {
-            $(x.target).siblings().slideToggle("slow").parent().toggleClass("active")
-            .siblings().removeClass("active").find("ul").slideUp("slow");
+            if(x.target.nodeName != "SPAN"){
+                $(x.target).siblings().slideToggle("slow").parent().toggleClass("active")
+                .siblings().removeClass("active").find("ul").slideUp("slow");
+            }else{
+                $(x.target).parent().siblings().slideToggle("slow").parent().toggleClass("active")
+                .siblings().removeClass("active").find("ul").slideUp("slow");
+            }
+            
         },
         // 设备管理——穿梭框向右添加设备
         aDevice() {
@@ -3138,7 +3128,15 @@ export default {
                                 }
                             });
                         }else{
-                            
+                            for(let k in field){
+                                vm.currentObj.filter((e)=>{
+                                    e[k] = field[k]
+                                });
+                            }
+                            vm.currentObj.forEach((e)=>{
+                                e.edit = 'update'
+                                vm.updateGroup.push(e);
+                            })
                         }
                         
                         layui.table.reload(vm.sort,{
@@ -3530,15 +3528,30 @@ export default {
                 `,
                 success: function(){
                     // 首先要查看当前新增窗口有没有预设的命令值,还要判断命令类型
-                    if(vm.linkageAdd.Actions.length>0){
-                        let cla = vm.linkageAdd.Actions.filter(item=>{return item.Type==type});
-                        for(let i=0; i<vm.timedTaskOrder.length; i++){
-                            let index = cla.findIndex(item=>{ 
-                                return (item.ActionId==vm.timedTaskOrder[i].Id)
-                            })
-                            if(index>=0){vm.timedTaskOrder[i].LAY_CHECKED = true}
-                        }
+                    // if(vm.linkageAdd.Actions.length>0){
+                    //     let cla = vm.linkageAdd.Actions.filter(item=>{return item.Type==type});
+                    //     for(let i=0; i<vm.timedTaskOrder.length; i++){
+                    //         let index = cla.findIndex(item=>{ 
+                    //             return (item.ActionId==vm.timedTaskOrder[i].Id)
+                    //         })
+                    //         if(index>=0){vm.timedTaskOrder[i].LAY_CHECKED = true}
+                    //     }
+                    // }
+                    if(vm.linkageAddStatus!= 0){
+                        let list = vm.currentObj[0].Actions;
+                        list.filter((e)=>{
+                            for(let key in e){
+                                if(type==e.Type){
+                                    vm.timedTaskOrder.filter((j)=>{
+                                        if(j.Id==e.ActionId){
+                                            j.LAY_CHECKED = true
+                                        }
+                                    });
+                                }
+                            }
+                        });
                     }
+
                     layui.table.render({
                         elem: '#selectOrderTable',
                         data: vm.timedTaskOrder,
@@ -3554,16 +3567,29 @@ export default {
                             }
                         ]]
                     });
+                    
                 },
                 yes: function(index, layero){
                     let checkStatus = layui.table.checkStatus('selectOrderTable');
+                    let temp = [],temp2 = [];
                     if(checkStatus.data.length>0){
-                        let temp = vm.linkageAdd.Actions.filter(item=>{return item.Type!=type; });
                         $.each(checkStatus.data, (i, e)=>{
                             temp.push({Type: type, ActionId: e.Id});
                         })
-                        vm.linkageAdd.Actions = temp;
                     }
+                    console.log(vm.currentObj[0]);
+                    console.log(temp);
+                    vm.currentObj[0].Actions.filter((elem)=>{
+                        if(elem.Type!=type){
+                            temp2.push(elem);
+                        }
+                    });
+                    temp.filter((ele)=>{
+                        temp2.push(ele)
+                    })
+                    console.log(temp2);
+                    vm.currentObj[0].Actions = temp2;
+                    console.log(vm.currentObj[0]);
                     layui.layer.close(index);
                 },
                 end() {
@@ -3594,6 +3620,8 @@ body
     .ContactGroups-box
         div
             width 50%
+        .layui-unselect
+            width 100%
         li
             width 50%
     table .glyphicon-edit
@@ -3697,6 +3725,8 @@ body
         display flex
         align-items center
         cursor pointer
+        color #425d70
+        font-size 14px
         span
             display inline-block
             width 20px
@@ -3705,6 +3735,7 @@ body
             border-radius 2px
             margin 0 10px 0 0
             background #fff url(/public/images/setup/icon_host_add.png) no-repeat center
+            
     li
         .tit + div>span
             display inline-block
