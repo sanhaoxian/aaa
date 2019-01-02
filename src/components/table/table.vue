@@ -1364,6 +1364,7 @@ export default {
                             if(res.body.status){
                                 vm.successMsg(vm.$t('Tips[6]'))
                                 $('.modifyFlag span').remove();
+                                $('.application span').remove();
                                 if(vm.sort=='monitoring'){
                                     vm.Tdata.filter((e)=>{
                                         if(e.hasOwnProperty('edit')){
@@ -1583,6 +1584,25 @@ export default {
                                     }
                                     currentObj.edit = 'update';
                                     vm.updateGroup.push(currentObj);
+                                    if($('.application').find('span').length==0){
+                                        $('<span class="layui-badge-dot" style="background-color: #1E9FFF"></span>').appendTo('.application')
+                                    }
+                                    let local;
+                                    vm.Tdata.filter((e, i)=>{
+                                        if(currentObj.hasOwnProperty('Id')){
+                                            if(currentObj.Id==e.Id){
+                                                local = i;
+                                            }
+                                        }else{
+                                            if(currentObj.id = e.id){
+                                                local = i
+                                            }
+                                        }
+                                    });
+                                    if(local>=0){
+                                        vm.Tdata.splice(local, 1, currentObj)
+                                    }
+                                    vm.renderTable(vm.Tdata)
                                     layer.close(index);
                                     return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
                                 });
@@ -3614,7 +3634,7 @@ body
         content ''
         width 0
         height 0
-        border: 20px solid transparent
+        border 20px solid transparent
         border-top 10px solid #ccc
         border-bottom 0
     .ContactGroups-box
@@ -3625,10 +3645,10 @@ body
         li
             width 50%
     table .glyphicon-edit
-        color #007bbb;
-        cursor pointer;
-        font-size 18px;
-        margin-left 5px;
+        color #007bbb
+        cursor pointer
+        font-size 18px
+        margin-left 5px
         
     .errorMsg 
         box-shadow none
@@ -3694,7 +3714,7 @@ body
     ::-webkit-scrollbar-thumb
         background #2d8ad2
     ::-webkit-scrollbar-button
-        display: none
+        display none
         background-color #383842
 // div[class$="-Hostgroups"]
 //     overflow: unset;
@@ -3750,15 +3770,15 @@ body
 .addDeviceBox .B
     display flex
     flex-direction column
-    justify-content: center
+    justify-content center
     button 
-        width: 75px;
-        height: 30px;
-        color: #fff;
-        margin: 6px;
-        font-size: 16px;
-        display: block;
-        border-radius: 4px;
+        width 75px
+        height 30px
+        color #fff
+        margin 6px
+        font-size 16px
+        display block
+        border-radius 4px
     button:nth-child(1)
         border 1px solid #0e6bb1
         background #2c90dc
@@ -3924,8 +3944,15 @@ body
             box-shadow 3px 3px 15px rgba(0, 0, 0, 0.2) inset, -3px -3px 15px rgba(0, 0, 0, 0.2) inset;
             border-radius 6px;
         .device_filter
+            position absolute
+            right 0
             form
                 display flex
+                justify-content flex-end
+                .layui-form-item
+                    width auto
+                    .layui-input-inline
+                        max-width 180px
         .linkage_filter
             position absolute
             right 0
