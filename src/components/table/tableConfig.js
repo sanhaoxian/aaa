@@ -1615,6 +1615,7 @@ export default  {
         // Friday: false,
         // Saturday: false,
         // Sunday: false,
+        actions: [],
         Repeat: '',
         edit: 'add'
       }
@@ -1734,7 +1735,7 @@ export default  {
         <div class="layui-form-item">
           <label class="layui-form-label">${vm.$t('Table.Box.Add.forward.label[4]')}</label>
           <div class="layui-input-block">
-            <input type="text" name="Number" placeholder="${vm.$t('Table.Box.Add.forward.placeholder[3]')}" autocomplete="off" class="layui-input">
+            <input type="number" name="Number" placeholder="${vm.$t('Table.Box.Add.forward.placeholder[3]')}" autocomplete="off" class="layui-input">
           </div>
         </div>
         </form>

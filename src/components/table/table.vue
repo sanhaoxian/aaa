@@ -1082,7 +1082,8 @@ export default {
                             return false
                         }
                         if(vm.linkageAdd.Actions.length<=0){
-                            vm.errorMsg('联动命令不能为空')
+                            vm.errorMsg('联动命令不能为空');
+                            return false
                         }
                         res = {data: vm.linkageAdd}
                     }else if(vm.sort== 'contacts'){
@@ -1100,7 +1101,12 @@ export default {
                         if(vm.sort== 'forward'){
                             res.data.edit = 'add';
                             vm.updateGroup.push(res.data);
+                            vm.Tdata.push(res.data)
+                            vm.renderTable(vm.Tdata);
                             layer.close(index);
+                            if($('.modifyFlag').find('span').length==0){
+                                $('.modifyFlag').append('<span class="layui-badge-dot"></span>');
+                            }
                             return 
                         }
                         if(!res.feedback.status){ vm.errorMsg(res.feedback.msg); return false; }
@@ -1136,7 +1142,7 @@ export default {
                                 layer.close(index);
                             }else{
                                 vm.errorMsg(res.body.msg)
-                                layer.close(index);
+                                // layer.close(index);
                             }
                         },(err)=>{
                             console.log(err.body);
@@ -1192,7 +1198,9 @@ export default {
                             });
                             vm.updateGroup.splice(index, 1);
                         }else{
-                            vm.updateGroup.push(e);
+                            if(vm.sort!='linkage'){
+                                vm.updateGroup.push(e);
+                            }
                         }
                     })
                     
@@ -1206,9 +1214,20 @@ export default {
                                         j--;
                                     }
                                 }else{
-                                    if(vm.currentObj[i].Name==vm.Tdata[j].Name){
-                                        vm.Tdata.splice(j, 1);
-                                        j--;
+                                    // if(vm.currentObj[i].Name==vm.Tdata[j].Name){
+                                    //     vm.Tdata.splice(j, 1);
+                                    //     j--;
+                                    // }
+                                    if(vm.currentObj[i].hasOwnProperty('Id')){
+                                        if(vm.currentObj[i].Id==vm.Tdata[j].Id){
+                                            vm.Tdata.splice(j, 1);
+                                            j--;
+                                        }
+                                    }else{
+                                        if(vm.currentObj[i].id==vm.Tdata[j].id){
+                                            vm.Tdata.splice(j, 1);
+                                            j--;
+                                        }
                                     }
                                 }
                             }
@@ -1669,6 +1688,7 @@ export default {
                                         renewPwd = true;
                                     }else{
                                         vm.reSetPwd = false;
+                                        renewPwd = false;
                                     }
                                 })
                                 $("#selectUserRole").val(vm.currentObj[0].Type);
@@ -1977,8 +1997,9 @@ export default {
                     　　}
                     });
                 }else if(obj.event == 'monitoring'){
-                    vm.$emit('Monitoring', {hid:obj.data.Id});
-                    // status = true;
+                    if(obj.data.hasOwnProperty("Id")){
+                        vm.$emit('Monitoring', {hid:obj.data.Id});
+                    }
                 }else if(obj.event == 'checkOrder'){
                     let res = vm.config[vm.sort].editCheckOrder(obj.data);
                     openLayer(res, obj);
@@ -2047,8 +2068,7 @@ export default {
                     });
                 }else if(obj.event == 'passive_enabled'){
                     obj.data._PASSIVE_ENABLED=="1"? obj.data._PASSIVE_ENABLED=0 : obj.data._PASSIVE_ENABLED=1
-                    obj.data.edit = 'update';
-                    
+                    obj.data.edit=='add'?"":obj.data.edit = 'update';
                     if(vm.updateGroup.length>0){
                         let index2=null;
                         $.each(vm.updateGroup, (i,e)=>{
@@ -2067,6 +2087,9 @@ export default {
                             return index2 = i
                         }
                     })
+                    if($('.modifyFlag').find('span').length==0){
+                        $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
+                    }
                     vm.Tdata.splice(index2, 1, obj.data)
                     vm.renderTable(vm.Tdata);
                 }else if(obj.event == 'chanewpwdostgroups'){
@@ -2115,8 +2138,7 @@ export default {
                                 // obj.update({
                                 //     key: [{Id: data.value}]
                                 // });
-                                console.log("选取的属性", data.elem.name);
-                                console.log("选取的机房", data.value);
+                             
                                 obj.data.hostgroups = [];
                                 obj.data.hostgroups.push(data.value);
                             }else{
@@ -2282,9 +2304,18 @@ export default {
                     layer.open(opts);
                 }else if(obj.event == 'timedTaskOrder'){
                     let cell = obj.tr;
-                    $.each(obj.data.actions, (i, e)=>{
-                        let a = vm.timedTaskOrder.find(item=>{if(item.Id===e.Id){item.LAY_CHECKED = true}});
-                    })
+                    if(obj.data.hasOwnProperty("actions")){
+                        $.each(obj.data.actions, (i, e)=>{
+                            vm.timedTaskOrder.filter(item=>{
+                                if(item.hasOwnProperty("Id")){
+                                    if(item.Id===e.Id){
+                                        item.LAY_CHECKED = true
+                                    }
+                                }
+                            });
+                        })
+                    }
+
                     let opts = {
                         type: 0,
                         title: vm.$t('Table.Box.Cell.timedTask.order.title'),
@@ -2399,8 +2430,10 @@ export default {
                     let res = vm.config[vm.sort].extend(obj.data);
                     openLayer(res, obj);
                 }else if(obj.event == 'bgEdit'){
-                    let url = window.location.protocol + "//" + window.location.host + "/public/ui/ve/index.html?EDIT_MODE=true&hostgroup="+obj.data.Name;
-                    window.open(encodeURI(url), '_blank');
+                    if(obj.data.hasOwnProperty("Id")){
+                        let url = window.location.protocol + "//" + window.location.host + "/public/ui/ve/index.html?EDIT_MODE=true&hostgroup="+obj.data.Name;
+                        window.open(encodeURI(url), '_blank');
+                    }
                 }
             })
             // 监听表格复选
@@ -3557,8 +3590,22 @@ export default {
                     //         if(index>=0){vm.timedTaskOrder[i].LAY_CHECKED = true}
                     //     }
                     // }
+                    /**预显示被选中的命令 */
                     if(vm.linkageAddStatus!= 0){
                         let list = vm.currentObj[0].Actions;
+                        list.filter((e)=>{
+                            for(let key in e){
+                                if(type==e.Type){
+                                    vm.timedTaskOrder.filter((j)=>{
+                                        if(j.Id==e.ActionId){
+                                            j.LAY_CHECKED = true
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }else{
+                        let list = vm.linkageAdd.Actions;
                         list.filter((e)=>{
                             for(let key in e){
                                 if(type==e.Type){
@@ -3592,24 +3639,28 @@ export default {
                 yes: function(index, layero){
                     let checkStatus = layui.table.checkStatus('selectOrderTable');
                     let temp = [],temp2 = [];
+                    /**这里获取勾选了哪一个选项 **/
                     if(checkStatus.data.length>0){
                         $.each(checkStatus.data, (i, e)=>{
                             temp.push({Type: type, ActionId: e.Id});
                         })
                     }
-                    console.log(vm.currentObj[0]);
-                    console.log(temp);
-                    vm.currentObj[0].Actions.filter((elem)=>{
-                        if(elem.Type!=type){
-                            temp2.push(elem);
-                        }
-                    });
-                    temp.filter((ele)=>{
-                        temp2.push(ele)
-                    })
-                    console.log(temp2);
-                    vm.currentObj[0].Actions = temp2;
-                    console.log(vm.currentObj[0]);
+                    /* 这里是当修改的时候，获取参数本来就有命令 */
+                    if(vm.linkageAddStatus!=0){
+                        vm.currentObj[0].Actions.filter((elem)=>{
+                            if(elem.Type!=type){
+                                temp2.push(elem);
+                            }
+                        });
+                        temp.filter((ele)=>{
+                            temp2.push(ele)
+                        })
+                        vm.currentObj[0].Actions = temp2;
+                    }else{
+                        temp.filter((ele)=>{
+                            vm.linkageAdd.Actions.push(ele)
+                        })
+                    }
                     layui.layer.close(index);
                 },
                 end() {
@@ -3961,7 +4012,7 @@ body
                 justify-content space-between
                 .layui-form-item
                     width auto
-                    margin 5px
+                    margin 0 5px
                 .layui-btn:hover
                     text-decoration none
                 .clear_linkage

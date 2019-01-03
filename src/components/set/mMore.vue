@@ -9,7 +9,7 @@
                     <li>{{$t('mMore.tabTitle[3]')}}</li>
                     <li @click="renderLeftMenu">{{$t('mMore.tabTitle[4]')}}</li>
                     <li>{{$t('mMore.tabTitle[5]')}}</li>
-                    <li>{{$t('mMore.tabTitle[6]')}}</li>
+                    <li @click="renderTimedTask">{{$t('mMore.tabTitle[6]')}}</li>
                     <li>{{$t('mMore.tabTitle[7]')}}</li>
                     <li @click="renderForward">{{$t('mMore.tabTitle[8]')}}</li>
                     <li @click="renderLinkage">{{$t('mMore.tabTitle[9]')}}</li>
@@ -53,42 +53,42 @@
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[6]')}}</td>
-                                    <td><input type="text" name="LowHostFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.LowHostFlapThreshold"></td>
+                                    <td><input type="number" name="LowHostFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.LowHostFlapThreshold"></td>
                                     <td>{{$t('mMore.globalPara.text[6]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[7]')}}</td>
-                                    <td><input type="text" name="LowServiceFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.LowServiceFlapThreshold"></td>
+                                    <td><input type="number" name="LowServiceFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.LowServiceFlapThreshold"></td>
                                     <td>{{$t('mMore.globalPara.text[7]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[8]')}}</td>
-                                    <td><input type="text" name="HighHostFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.HighHostFlapThreshold"></td>
+                                    <td><input type="number" name="HighHostFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.HighHostFlapThreshold"></td>
                                     <td>{{$t('mMore.globalPara.text[8]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[9]')}}</td>
-                                    <td><input type="text" name="HighServiceFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.HighServiceFlapThreshold"></td>
+                                    <td><input type="number" name="HighServiceFlapThreshold" autocomplete="off" class="layui-input" v-model="globalTable.HighServiceFlapThreshold"></td>
                                     <td>{{$t('mMore.globalPara.text[9]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[10]')}}</td>
-                                    <td><input type="text" name="IntervalLength" autocomplete="off" class="layui-input" v-model="globalTable.IntervalLength"></td>
+                                    <td><input type="number" name="IntervalLength" autocomplete="off" class="layui-input" v-model="globalTable.IntervalLength"></td>
                                     <td>{{$t('mMore.globalPara.text[10]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[11]')}}</td>
-                                    <td><input type="text" name="NotificationTimeout" autocomplete="off" class="layui-input" v-model="globalTable.NotificationTimeout"></td>
+                                    <td><input type="number" name="NotificationTimeout" autocomplete="off" class="layui-input" v-model="globalTable.NotificationTimeout"></td>
                                     <td>{{$t('mMore.globalPara.text[11]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[12]')}}</td>
-                                    <td><input type="text" name="HostCheckTimeout" autocomplete="off" class="layui-input" v-model="globalTable.HostCheckTimeout"></td>
+                                    <td><input type="number" name="HostCheckTimeout" autocomplete="off" class="layui-input" v-model="globalTable.HostCheckTimeout"></td>
                                     <td>{{$t('mMore.globalPara.text[12]')}}</td>
                                 </tr>
                                 <tr>
                                     <td>{{$t('mMore.globalPara.label[13]')}}</td>
-                                    <td><input type="text" name="ServiceCheckTimeout" autocomplete="off" class="layui-input" v-model="globalTable.ServiceCheckTimeout"></td>
+                                    <td><input type="number" name="ServiceCheckTimeout" autocomplete="off" class="layui-input" v-model="globalTable.ServiceCheckTimeout"></td>
                                     <td>{{$t('mMore.globalPara.text[13]')}}</td>
                                 </tr>
                                 <tr>
@@ -672,7 +672,9 @@ export default {
                 vm.errorMsg(res.body.msg);
             });
         },
-
+        renderTimedTask(){
+            this.$refs.timedTaskTab.getTableData();
+        },
         //能源参数
         renderEnergy() {
             let vm = this;
@@ -761,11 +763,9 @@ export default {
                         $(data.elem).parents().parents('tr').addClass('xg')
                     });
                     layui.form.on('checkbox(allSel)', function(data){
-                        // console.log(data.elem);
                         let check_box_list = $(data.elem).parent().parent().parent().next().find("input[type='checkbox']");
                         for (let i=0; i < check_box_list.length; i++){
-                            console.log(check_box_list[i].checked);
-                            check_box_list[i].checked = !check_box_list[i].checked;
+                            check_box_list[i].checked = data.elem.checked;
                         }
                         layui.form.render('checkbox')
                     });
@@ -896,19 +896,22 @@ export default {
             return !isNaN(Number(x));
         },
         refreshBuff:function () {
-            var vm=this, one=$(".energyTab .energy .A li"),two=$(".energyTab .energy .C tbody tr"),i,j;
-            // console.log(one);
+            var vm=this, one=$(".energyTab .energy .A li"), two=$(".energyTab .energy .C tbody tr"),i,j;
             for(i=0;i<one.length;i++){
-                for(j=0;j<two.length;j++){
-                    // console.log(two[j].childNodes[4].textContent);
-                    if(one[i].textContent==two[j].childNodes[2].textContent&&vm.index.hostName==two[j].childNodes[4].textContent){
-                        $(one[i]).find("label").attr("disabled","disabled");
-                        $(one[i]).find("input").attr("disabled","disabled");
-                        break;
-                    }else{
-                        $(one[i]).find("label").removeAttr("disabled","disabled");
-                        $(one[i]).find("input").removeAttr("disabled","disabled");
+                if(two.length!=0){
+                    for(j=0;j<two.length;j++){
+                        if(one[i].textContent==two[j].childNodes[2].textContent&&vm.index.hostName==two[j].childNodes[4].textContent){
+                            $(one[i]).find("label").attr("disabled","disabled");
+                            $(one[i]).find("input").attr("disabled","disabled");
+                            break;
+                        }else{
+                            $(one[i]).find("label").removeAttr("disabled","disabled");
+                            $(one[i]).find("input").removeAttr("disabled","disabled");
+                        }
                     }
+                }else{
+                    $(one[i]).find("label").removeAttr("disabled","disabled");
+                    $(one[i]).find("input").removeAttr("disabled","disabled");
                 }
             }
             layui.form.render()
@@ -1337,6 +1340,11 @@ div[class$="-Type"]
                             height 40px
                             text-align center
                             border 1px solid #ccc
+                        .layui-form-selected dl
+                            position fixed
+                            min-width 120px
+                            left auto
+                            top auto
                 .C>div
                     overflow-y auto
                 .saveBtn
