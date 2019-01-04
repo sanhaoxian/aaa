@@ -674,11 +674,11 @@ export default  {
                                 <div style="display: flex; ">
                                     <div style="margin: 5px">
                                         <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
-                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
+                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='number' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
                                     </div>
                                     <div style="margin: 5px">
                                         <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
-                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
+                                        <input style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='number' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
                                     </div>
                                     <i class="layui-icon layui-icon-close-fill layer_checkOrder_deleteBtn" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                                 </div>
@@ -720,11 +720,11 @@ export default  {
                             <div style="display: flex">
                                 <div style="margin: 5px">
                                     <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[0]')}:</label>
-                                    <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
+                                    <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='number' name='min' lay-skin='primary' value='${data[0]}' title='${data[0]}' />
                                 </div>
                                 <div style="margin: 5px">
                                     <label>${vm.$t('Table.Box.Cell.monitoring.editCheckOrder.label2[1]')}:</label>
-                                    <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='text' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
+                                    <input autocomplete="off"  style="border: 1px solid #ccc; border-radius: 3px; height: 30px; padding-left: 5px" type='number' name='max' lay-skin='primary' value='${data[1]}' title='${data[1]}' />
                                 </div>
                                 <i class=" layer_checkOrder_deleteBtn layui-icon layui-icon-close-fill" style="cursor: pointer; color: #cc3341; font-size: 34px;"></i>
                             </div>

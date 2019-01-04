@@ -1694,6 +1694,7 @@ export default {
                                 $("#selectUserRole").val(vm.currentObj[0].Type);
                                 layui.form.render();
                             });
+                             $('#modityUserForm').find('input[name="userName"]').eq(0).attr("readonly", false)
                         }else{
                             vm.$nextTick(()=>{
                                 layui.form.render();
@@ -2717,7 +2718,7 @@ export default {
                 jump: function(obj, first){
                     if(!first){
                         vm.curr = obj.curr;
-                        vm.sort=='devices'?vm.getTableData(obj.curr, vm.curParams):vm.getTableData(obj.curr);
+                        (vm.sort=='devices'||vm.sort=='monitoring')?vm.getTableData(obj.curr, vm.curParams):vm.getTableData(obj.curr);
                     }
                 }
             }

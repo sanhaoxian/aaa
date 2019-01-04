@@ -80,10 +80,17 @@ export default{
                 yes(index, layero) {
                     vm.$http.post('/config/rest/ExportJobs', {"Name":"Export by Job.js"})
                     .then((res)=>{
-                        vm.markId = res.body.Id;
-                        $('.layui-progress-bar').addClass('progressBar');
-                        vm.play();
-                        vm.$store.commit('changeApplication', 1);
+                        if(res.body.status){
+                            vm.markId = res.body.Id;
+                            $('.layui-progress-bar').addClass('progressBar');
+                            vm.play();
+                            vm.$store.commit('changeApplication', 1);
+                        }else{
+                            vm.errorMsg(res.body.msg);
+                            if(res.body.code==302){
+                                window.location.href = res.body.redirect
+                            }
+                        }
                     });
                     vm.percentage = vm.percentage + parseInt(Math.random()*20, 10);
                     layui.element.progress('demo', vm.percentage+'%');
