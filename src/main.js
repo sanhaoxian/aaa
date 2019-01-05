@@ -15,6 +15,8 @@ import App from './App'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min.js'
 
+const xssFilters = require('xss-filters');
+
 Vue.use(VueResource)
 Vue.use(VueI18n)
 Vue.use(Router)
@@ -24,6 +26,56 @@ const router = new Router({
 });
 
 Vue.config.productionTip = false
+
+// 通过拦截器 对post过去的内容进行转义
+Vue.http.interceptors.push(function(request, next) {
+    if(request.method == 'POST'){
+        if(request.body!=null){
+            for(let key in request.body){
+                if((typeof request.body[key]) == 'string'){
+                    request.body[key] = xssFilters.inHTMLData(request.body[key]);
+                }
+            }
+        }
+    }else{
+        if(!$.isEmptyObject(request.params)){
+            for(let key in request.params){
+                if((typeof request.params[key]) == 'string'){
+                    request.params[key] = xssFilters.inHTMLData(request.params[key]);
+                }
+            }
+        }
+    }
+    next((response)=>{
+        function htmlDecode(input){
+            var e = document.createElement('div');
+            e.innerHTML = input;
+            return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+        }
+        if(response.body){
+            if(response.body.hasOwnProperty('data')){
+                let list = response.body.data;
+                let style = list.constructor
+                if(style == Array){
+                    list.filter((e)=>{
+                        for(let key in e){
+                            if(typeof e[key] == 'string'){
+                                e[key] = htmlDecode(e[key]);
+                            }
+                        }
+                    });
+                }
+                if(style == Object){
+                    for(let key in list){
+                        if(typeof list[key] == 'string'){
+                            list[key] = htmlDecode(list[key]);
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
 /*******************************************************/
 function getTarget(node = document.body) {
   if (node === true) return document.body;

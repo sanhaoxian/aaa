@@ -470,7 +470,7 @@
                         <label class="layui-form-label">{{$t('mMore.leftMenu.Prompt.label[4]')}}</label>
                         <div class="layui-input-block">
                             <select name="Hostgroup">
-                                <option v-for="item in hostgroup" :key='item.Id' :value="item.Id">{{item.Name}}</option>
+                                <option v-for="item in hostgroup" :key='item.Id' :value="item.Id" v-html="item.Name" ></option>
                             </select>
                         </div>
                     </div>
@@ -770,7 +770,6 @@ export default {
         filter_device() {
             let vm = this;
             let list = $('.device_filter form').serializeArray(), params={};
-            console.log(list);
             params[list.find(e => e.name=='hgid').name] = list.find(e => e.name=='hgid').value;
             params[list.find(e => e.name=='class').value] = list.find(e => e.name=='key').value;
             vm.curParams = params;
@@ -827,15 +826,16 @@ export default {
             }else{
                 url += "?"
             }
-            if(params!=undefined){
-                this.curParams = params;
-                let data = '';
-                for(let key in params){
-                    data += '&'+(key+'='+params[key]);
-                }
-                url += data
-            };
-            this.$http.get(url)
+            // if(params!=undefined){
+            //     // this.curParams = params;
+            //     // let data = '';
+            //     // for(let key in params){
+            //     //     data += '&'+(key+'='+params[key]);
+            //     // }
+            //     // url += data
+            // };
+            
+            this.$http.get(url, params!=undefined&&{params: params})
             .then((res)=>{
                 if(vm.sort=='timedTask'){
                     vm.Tdata = res.body;
@@ -1693,8 +1693,9 @@ export default {
                                 })
                                 $("#selectUserRole").val(vm.currentObj[0].Type);
                                 layui.form.render();
+                                $('#modityUserForm').find('input[name="userName"]').eq(0).attr("readonly", true)
                             });
-                             $('#modityUserForm').find('input[name="userName"]').eq(0).attr("readonly", false)
+                            
                         }else{
                             vm.$nextTick(()=>{
                                 layui.form.render();
@@ -1802,7 +1803,7 @@ export default {
                                 layer.close(index);
                             });
                         }
-                        
+                        $('#modityUserForm').find('input[name="userName"]').eq(0).attr("readonly", false)
                     },
                     end() {
                         if(vm.sort=='leftMenu'){
