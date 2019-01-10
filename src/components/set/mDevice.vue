@@ -47,6 +47,23 @@ export default {
         });
         this.gethost();
         this.getDevices();
+        this.$nextTick(()=>{
+            layui.form.on('select(filter_hostGroup)', function(){
+                let list = $('.device_filter form').serializeArray(), params={};
+                params[list.find(e => e.name=='hgid').name] = list.find(e => e.name=='hgid').value;
+                params[list.find(e => e.name=='class').value] = list.find(e => e.name=='key').value;
+                vm.$refs['devicesTab'].getTableData('', params)
+                vm.$refs['devicesTab'].curr = 1;
+            });
+            $('.clear_linkage').click((e)=>{
+                $(e.target).parent().prevAll().find('select[name="hgid"]').val("");
+                $(e.target).parent().prevAll().find('select[name="class"]').val("");
+                $(e.target).parent().prevAll().find('input[name="key"]').val("");
+                vm.getDevices();
+                vm.$refs.devicesTab.curParams = []
+            })
+        });
+        
     },
     methods: {
         addMonitoringTab(params) {

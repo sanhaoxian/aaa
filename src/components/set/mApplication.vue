@@ -80,7 +80,7 @@ export default{
                 yes(index, layero) {
                     vm.$http.post('/config/rest/ExportJobs', {"Name":"Export by Job.js"})
                     .then((res)=>{
-                        if(res.body.status){
+                        if(res.body.Status=="Running"){
                             vm.markId = res.body.Id;
                             $('.layui-progress-bar').addClass('progressBar');
                             vm.play();
@@ -124,6 +124,7 @@ export default{
                     }else{
                         // '应用执行完成';
                         $('.layui-progress-bar').css('background-color', '#5cb85c');
+                        $('.progressBar').css('animation', 'none')
                         vm.$store.commit('changeApplication', 2)
                         // 改变进度条的颜色
                     }
@@ -267,14 +268,14 @@ export default{
         
     .layui-layer-btn .layui-layer-btn0
         color #fff
-        background-color #f86868
+        background-color #82d642 
     .layui-layer-btn
         display flex
         justify-content space-around
         a
             display inline-block
             color #fff
-            background-color #82d642
+            background-color #f86868
             border #f86868
             padding 0 26px
             font-size 16px

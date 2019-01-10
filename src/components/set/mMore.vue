@@ -348,7 +348,7 @@ export default {
         let vm = this;
         this.$http.get('/api/v1/setting/hostgroup')
         .then((res)=>{
-            if(res.status){
+            if(res.body.status){
                 vm.hostgroup = res.body.data;
             }
         });
@@ -361,7 +361,14 @@ export default {
             }
         });
         vm.$nextTick(()=>{
-            layui.element.render('tab')
+            layui.element.render('tab');
+            // 清除按钮
+            $('.clear_linkage').click((e)=>{
+                $(e.target).parent().prevAll().find('select[name="key"]').val("");
+                $(e.target).parent().prevAll().find('input[name="keyValue"]').val("");
+                vm.renderLinkage();
+                vm.$refs.linkage.curParams = [];
+            })
         });
     },
     methods: {
@@ -1005,10 +1012,10 @@ export default {
                     }
                 },
                 done: (res)=>{
-                    if(res.status){
-                        vm.successMsg(res.msg)
+                    if(res.body.status){
+                        vm.successMsg(res.body.msg)
                     }else{
-                        vm.errorMsg(res.msg)
+                        vm.errorMsg(res.body.msg)
                     }
                 },
                 error: (err)=>{
@@ -1036,7 +1043,7 @@ export default {
                 yes(index, layero) {
                     vm.$http.post("/api/v1/setting/edition/select/update", {Edition: vm.currentEdition})
                     .then((res)=>{
-                        if(res.status){
+                        if(res.body.status){
                             layer.close(index);
                             vm.$router.push('/');
                             sessionStorage.clear();

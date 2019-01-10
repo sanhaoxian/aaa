@@ -52,7 +52,7 @@
                         <div class="layui-form-item" >
                             <label class="layui-form-label">{{$t('Table.devices.filter_label[0]')}}</label>
                             <div class="layui-input-inline">
-                            <select name="hgid">
+                            <select name="hgid" lay-filter="filter_hostGroup">
                                 <option value=""></option>
                                 <option v-for="item in hostgroup" :key="item.Id" :value="item.Id">{{item.Name}}</option>
                             </select>
@@ -73,7 +73,10 @@
                             <input type="text" name="key" autocomplete="off" class=" layui-input-inline layui-input text-input">
                         </div>
                         <div class="layui-form-item">
-                            <a class="layui-btn layui-btn-normal" @click="filter_device()">{{$t('Table.devices.filter_btn[0]')}}</a>
+                            <a class="layui-btn layui-btn-normal" @click="filter_device()">{{$t('Table.devices.filter_btn[0]')}}<i class="layui-icon layui-icon-search"></i></a>
+                        </div>
+                        <div class="layui-form-item clear_linkage">
+                            <a class="layui-btn" >清除<i class="layui-icon layui-icon-refresh"></i></a>
                         </div>
                     </form>
                 </div>
@@ -95,7 +98,7 @@
                             <a class="layui-btn layui-btn-normal" @click="filter_linkage()">{{$t('Table.devices.filter_btn[0]')}} <i class="layui-icon layui-icon-search"></i></a>
                         </div>
                         <div class="layui-form-item clear_linkage">
-                            <a class="layui-btn" @click="clear_linkage_filter($event)">清除<i class="layui-icon layui-icon-refresh"></i></a>
+                            <a class="layui-btn">清除<i class="layui-icon layui-icon-refresh"></i></a>
                         </div>
                     </form>
                 </div>
@@ -182,7 +185,7 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">{{$t('Table.Box.Batch.monitoring.label[1]')}}</label>
                     <div class="layui-input-block">
-                        <button class="layui-btn layui-btn-disabled" disabled style="backgroundColor: #273fa5; color: #ccc">{{batchTemp.temp[0]}}</button>
+                        <button class="layui-btn layui-btn-disabled btn-warning" disabled >{{batchTemp.temp[0]}}</button>
                     </div>
                 </div>
                 <div class="layui-form-item">
@@ -775,7 +778,7 @@ export default {
             vm.curParams = params;
             vm.getTableData('', params)
             vm.curr = 1
-            vm.curParams = [];
+            // vm.curParams = [];
             return false
         },
         filter_linkage() {
@@ -786,14 +789,8 @@ export default {
             // console.log(params);
             vm.getTableData('', params)
             vm.curr = 1;
-            vm.curParams = []
+            // vm.curParams = []
             return false
-        },
-        clear_linkage_filter(e) {
-            $(e.target).parent().prevAll().find('select[name="key"]').val("");
-            $(e.target).parent().prevAll().find('input[name="keyValue"]').val("");
-            vm.getTableData();
-            vm.getControlActions();
         },
         /* 所有表格中通用方法 */
         // 通用——获取联系人组
@@ -811,8 +808,12 @@ export default {
             let vm = this;
             this.$http.get('/api/v1/setting/hostgroup')
             .then((res)=>{
-                if(res.status){
+                if(res.body.status){
                     vm.hostgroup = res.body.data;
+                }else{
+                    if(res.body.code==302){
+                        window.location.href = res.body.redirect
+                    }
                 }
             });
             this.getContactgroup();
@@ -826,14 +827,14 @@ export default {
             }else{
                 url += "?"
             }
-            // if(params!=undefined){
-            //     // this.curParams = params;
+            if(params!=undefined){
+                this.curParams = params;
             //     // let data = '';
             //     // for(let key in params){
             //     //     data += '&'+(key+'='+params[key]);
             //     // }
             //     // url += data
-            // };
+            };
             
             this.$http.get(url, params!=undefined&&{params: params})
             .then((res)=>{
@@ -983,7 +984,7 @@ export default {
                 area: area,
                 shadeClose: true,
                 content: con,
-                skin: 'set-Table',
+                skin: vm.sort!='contacts'?'set-Table':'set-Table set-email',
                 btn: btn,
                 shade:[0.5, '#000'],
                 success: function(layero, index){
@@ -1165,7 +1166,7 @@ export default {
                         if(!reg.test(res.User2)){return vm.errorMsg(vm.$t('Tips[9]')); return false};
                         vm.$http.post('/config/rest/Resources/'+res.Id, res)
                         .then((res)=>{
-                            if(!res.status){
+                            if(!res.body.status){
                                 vm.errorMsg(res.body)
                             }
                             layer.close(index);
@@ -2433,7 +2434,8 @@ export default {
                     openLayer(res, obj);
                 }else if(obj.event == 'bgEdit'){
                     if(obj.data.hasOwnProperty("Id")){
-                        let url = window.location.protocol + "//" + window.location.host + "/public/ui/ve/index.html?EDIT_MODE=true&hostgroup="+obj.data.Name;
+                        // let url = window.location.protocol + "//" + window.location.host + "/public/ui/ve/index.html?EDIT_MODE=true&hostgroup="+obj.data.Name;
+                        let url = window.location.protocol + "//" + window.location.host + "/public/templates/groupmap_editer.html?roomName="+obj.data.Name;
                         window.open(encodeURI(url), '_blank');
                     }
                 }
@@ -3799,7 +3801,7 @@ body
         align-items center
         cursor pointer
         color #425d70
-        font-size 14px
+        font-size 16px
         span
             display inline-block
             width 20px
@@ -3886,14 +3888,14 @@ body
         
     .layui-layer-btn .layui-layer-btn0
         color #fff
-        background-color #f86868
+        background-color #82d642
     .layui-layer-btn
         display flex
         justify-content space-around
         a
             display inline-block
             color #fff
-            background-color #82d642
+            background-color #f86868
             border #f86868
             padding 0 26px
             font-size 16px
@@ -3982,6 +3984,13 @@ body
                         margin 0
     .orderTable
         margin-top 0
+.set-email
+    .layui-layer-btn .layui-layer-btn0
+        background-color #f86868
+    .layui-layer-btn
+        a
+            background-color #82d642
+           
 .setContactgroups
     .layui-layer-content
         form
@@ -4006,6 +4015,15 @@ body
                     width auto
                     .layui-input-inline
                         max-width 180px
+                .layui-btn:hover
+                    text-decoration none
+                .clear_linkage
+                    .layui-btn
+                        margin-left 5px
+                        background #8d8d91
+                    
+                i.layui-icon
+                    font-size 14px
         .linkage_filter
             position absolute
             right 0
@@ -4020,6 +4038,7 @@ body
                 .clear_linkage
                     .layui-btn
                         background #8d8d91
+                        text-decoration none
                 i.layui-icon
                     font-size 14px
         .layui-form-item

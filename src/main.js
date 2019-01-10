@@ -46,33 +46,34 @@ Vue.http.interceptors.push(function(request, next) {
             }
         }
     }
+    // console.log(request);
     next((response)=>{
-        function htmlDecode(input){
-            var e = document.createElement('div');
-            e.innerHTML = input;
-            return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-        }
+        // function htmlDecode(input){
+        //     var e = document.createElement('div');
+        //     e.innerHTML = input;
+        //     return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+        // }
         if(response.body){
-            if(response.body.hasOwnProperty('data')){
-                let list = response.body.data;
-                let style = list.constructor
-                if(style == Array){
-                    list.filter((e)=>{
-                        for(let key in e){
-                            if(typeof e[key] == 'string'){
-                                e[key] = htmlDecode(e[key]);
-                            }
-                        }
-                    });
-                }
-                if(style == Object){
-                    for(let key in list){
-                        if(typeof list[key] == 'string'){
-                            list[key] = htmlDecode(list[key]);
-                        }
-                    }
-                }
-            }
+            // if(response.body.hasOwnProperty('data')){
+            //     let list = response.body.data;
+            //     let style = list.constructor
+            //     if(style == Array){
+            //         list.filter((e)=>{
+            //             for(let key in e){
+            //                 if(typeof e[key] == 'string'){
+            //                     e[key] = htmlDecode(e[key]);
+            //                 }
+            //             }
+            //         });
+            //     }
+            //     if(style == Object){
+            //         for(let key in list){
+            //             if(typeof list[key] == 'string'){
+            //                 list[key] = htmlDecode(list[key]);
+            //             }
+            //         }
+            //     }
+            // }
         }
     });
 });
