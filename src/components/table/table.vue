@@ -203,7 +203,7 @@
                     <div class="layui-form-item" style="width: 90%">
                         <label class="layui-form-label">{{$t('Table.Box.Add.user.label[0]')}}</label>
                         <div class="layui-input-block">
-                            <input type="text" name="userName" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[0]')" :value="userEditBox.userName" class="layui-input">
+                            <input type="text" name="userName" ref="userName" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[0]')" :value="userEditBox.userName" class="layui-input">
                         </div>
                     </div>
                     <div class="layui-form-item" style="width: 90%">
@@ -243,14 +243,14 @@
                     <div v-if="setPwd">
                         <div class="layui-form-item" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[4]')}}</label>
-                            <div class="layui-input-block">
-                                <input type="password" name="pwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[1]')" class="layui-input">
+                            <div class="layui-input-block" >
+                                <input ref="errorPwd" type="password" name="pwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[1]')" class="layui-input">
                             </div>
                         </div>
                         <div class="layui-form-item" style="width: 90%">
                             <label class="layui-form-label">{{$t('Table.Box.Add.user.label[5]')}}</label>
-                            <div class="layui-input-block">
-                                <input type="password" name="repwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[2]')" class="layui-input">
+                            <div class="layui-input-block" >
+                                <input ref="errorRepwd" type="password" name="repwd" lay-verify="title" autocomplete="off" :placeholder="$t('Table.Box.Add.user.placeholder[2]')" class="layui-input">
                             </div>
                         </div>
                     </div>
@@ -956,7 +956,9 @@ export default {
                 vm.userEditBox.userName = '';
                 this.setPwd = true;
                 this.changePwd = false;
-
+                this.reSetPwd = false;
+                $(vm.$refs.userName).css('border', '1px solid #e6e6e6');
+                $(vm.$refs.userName).css('backgroundColor', '#fff')
                 tit = vm.$t('Table.Box.Add.user.title');
                 con = $('#userEditBox')
                 btn = [vm.$t("Prompt_btn[0]"), vm.$t("Prompt_btn[1]")];
@@ -991,6 +993,7 @@ export default {
                     layui.form.render();
                     if(vm.sort=="user"){
                         $("#modityUserForm").find('input[name="userName"]').attr("readonly", false)
+                        $('#modityUserForm').find('input[name="userName"]').eq(0).attr("disabled", false);
                         $('.userRole').eq(0).attr('hidden', 'hidden');
                         layui.form.val("modityUserForm", {
                             "userName": "",
@@ -1020,6 +1023,31 @@ export default {
                                     }
                                     layui.form.render();
                                 })
+                            });
+                        });
+                        vm.$nextTick(()=>{
+                            $(vm.$refs.errorPwd).blur(()=>{
+                                let reg = /^(?=.*[a-zA-Z])(?=.*\d).{6,20}$/;
+                                let result = reg.test($(vm.$refs.errorPwd).val());
+                                if(!result){
+                                    $(vm.$refs.errorPwd).css('border', '1px solid red');
+                                    $(vm.$refs.errorPwd).css('box-shadow', '0 0 2px red');
+                                    return false
+                                }else{
+                                    $(vm.$refs.errorPwd).css('border', 'none');
+                                    $(vm.$refs.errorPwd).css('box-shadow', 'none');
+                                }
+                            });
+                            $(vm.$refs.errorRepwd).blur(()=>{
+                                let pwd = $(vm.$refs.errorPwd).val();
+                                let repwd = $(vm.$refs.errorRepwd).val()
+                                if(pwd != repwd){
+                                    $(vm.$refs.errorRepwd).css('border', '1px solid red');
+                                    $(vm.$refs.errorRepwd).css('box-shadow', '0 0 2px red');
+                                }else{
+                                    $(vm.$refs.errorRepwd).css('border', 'none');
+                                    $(vm.$refs.errorRepwd).css('box-shadow', 'none');
+                                }
                             });
                         });
                     }else if(vm.sort=="linkage"){
@@ -1694,7 +1722,10 @@ export default {
                                 })
                                 $("#selectUserRole").val(vm.currentObj[0].Type);
                                 layui.form.render();
-                                $('#modityUserForm').find('input[name="userName"]').eq(0).attr("readonly", true)
+                                $('#modityUserForm').find('input[name="userName"]').eq(0).attr("readonly", true);
+                                $('#modityUserForm').find('input[name="userName"]').eq(0).attr("disabled", true);
+                                $(vm.$refs.userName).css('border', 'none');
+                                $(vm.$refs.userName).css('backgroundColor', '#e7f4fd')
                             });
                             
                         }else{
@@ -1742,11 +1773,11 @@ export default {
                                 }
                                 if(renewPwd){
                                     $.each(postData, (i, e)=>{
-                                        if(e.name=="userName"){changePwd.user=e.value}
                                         if(e.name=="newpwd"){changePwd.newpwd=e.value};
                                         if(e.name=="oldpwd"){changePwd.oldpwd=e.value};
                                         if(e.name=='renewpwd'){changePwd.renewpwd=e.value};
                                     })
+                                    changePwd.user= $('#modityUserForm').find('input[name="userName"]').eq(0).val();
                                     if(changePwd.newpwd!=changePwd.renewpwd){
                                         vm.errorMsg(vm.$t('Table.Box.Add.user.tips[0]')+"!")
                                         

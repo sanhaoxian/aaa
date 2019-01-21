@@ -1443,13 +1443,13 @@ export default  {
       {
         field: "Name",
         title: vm.$t('Table.leftMenu.tableTH[0]'),
-        width: '12%',
+        // width: '12%',
         align: "center",
       },
       {
         field: "Hostgroup",
         title: vm.$t('Table.leftMenu.tableTH[1]'),
-        width: '12%',
+        // width: '12%',
         align: "center",
         templet(d) {
           let val = d.hgList&&d.hgList.find(e=>{if(e.Id==d.Hostgroup){return e}});
@@ -1460,17 +1460,17 @@ export default  {
         field: "Subgroup",
         title: vm.$t('Table.leftMenu.tableTH[2]'),
         align: "center",
-        width: '10%'
+        // width: '10%'
       },
-      {
-        field: "Link",
-        title: vm.$t('Table.leftMenu.tableTH[3]'),
-        align: "center",
-      },
+    //   {
+    //     field: "Link",
+    //     title: vm.$t('Table.leftMenu.tableTH[3]'),
+    //     align: "center",
+    //   },
       {
         field: "Target",
         title:  vm.$t('Table.leftMenu.tableTH[4]'),
-        width: '12%',
+        // width: '12%',
         align: "center",
         templet(d) {
           if(d.Target=='main'){

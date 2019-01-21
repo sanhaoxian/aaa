@@ -131,13 +131,13 @@
                         <div   class="backup_file">
                             <!-- <input type="file" accept=".7z" @change="checkpack" ref='file'> -->
                             <p ref='fileName'>选择文件</p>
-                            <input type="file" ref='file' @change="checkpack">
+                            <input type="file" ref='file' @change="checkpack" accept=".7z" >
                         </div>
                         <div class="backupBtn" ref='backupBtn'>
                             <button class="layui-btn layui-btn-disabled" disabled="true" @click="reducingFun">{{$t('mMore.backup.btn[0]')}}</button>
                             <button class="layui-btn active" @click="backupFun">{{$t('mMore.backup.btn[1]')}}</button>
                             <button class="layui-btn layui-btn-disabled" disabled="true" @click="importDriveFun">{{$t('mMore.backup.btn[2]')}}</button>
-                            <button class="layui-btn layui-btn-disabled" disabled="true" >{{$t('mMore.backup.btn[3]')}}</button>
+                            <button class="layui-btn layui-btn-disabled" disabled="true" @click="importModules">{{$t('mMore.backup.btn[3]')}}</button>
                         </div>
                     </div>
                     <!-- 左边菜单栏 -->
@@ -374,7 +374,7 @@ export default {
     methods: {
         init() {
             let vm = this;
-            this.$http.get('/com/setting/global')
+            this.$http.get('/api/v1/setting/global')
             .then((res)=>{
                 vm.globalTable = res.body.data;
                 vm.$nextTick(()=>{
@@ -407,7 +407,7 @@ export default {
         },
         globalSave() {
             let vm = this;
-            this.$http.post('/com/setting/global/update', vm.globalTable)
+            this.$http.post('/api/v1/setting/global/update', vm.globalTable)
             .then((res)=>{
                 vm.successMsg(res.body.msg)
             },(err)=>{
@@ -478,15 +478,15 @@ export default {
             let vm = this, prompt = '', tit='', url;
             if(type=='backService'){
                 if(vm.backService==0){
-                    url='/com/setting/cache/clean';
+                    url='/api/v1/setting/cache/clean';
                     tit=vm.$t('mMore.Backstage.Prompt.content[0].title'); 
                     prompt = vm.$t('mMore.Backstage.Prompt.content[0].text');
                 }else if(vm.backService==1){
-                    url='/com/setting/bs/start';
+                    url='/api/v1/setting/bs/start';
                     tit=vm.$t('mMore.Backstage.Prompt.content[1].title');;
                     prompt =vm.$t('mMore.Backstage.Prompt.content[1].text');
                 }else{
-                    url='/com/setting/bs/stop';
+                    url='/api/v1/setting/bs/stop';
                     tit=vm.$t('mMore.Backstage.Prompt.content[2].title');
                     prompt = vm.$t('mMore.Backstage.Prompt.content[2].text');
                 }
@@ -499,7 +499,6 @@ export default {
                     yes: function(){
                         vm.$http.get(url)
                         .then((res)=>{
-                            console.log(res.body);
                             vm.successMsg(res.body.msg);
                         }, (err)=>{
                             console.log(err.body);
@@ -509,11 +508,11 @@ export default {
                 });
             }else{
                 if(vm.backHost==0){
-                    url='/com/setting/server/poweroff';
+                    url='/api/v1/setting/server/poweroff';
                     tit= vm.$t('mMore.Backstage.Prompt.content[3].title');
                     prompt = vm.$t('mMore.Backstage.Prompt.content[3].text');
                 }else{
-                    url='/com/setting/server/reboot';
+                    url='/api/v1/setting/server/reboot';
                     tit=vm.$t('mMore.Backstage.Prompt.content[4].title');
                     prompt = vm.$t('mMore.Backstage.Prompt.content[4].text');
                 }
@@ -572,7 +571,7 @@ export default {
                     data.append("file", picfiles[i]);
                 }
                 $.ajax({
-                    url: "/com/configdata/restore",
+                    url: "/api/v1/configdata/restore",
                     type: "post",
                     data: data,
                     cache: false,
@@ -596,7 +595,7 @@ export default {
         },
         // 备份资料
         backupFun() {
-            window.open("/com/configdata/backup");
+            window.open("/api/v1/configdata/backup");
         },
         // 导入驱动
         importDriveFun() {
@@ -620,7 +619,7 @@ export default {
                 },
                 yes: function(index, layero) {
                     var data = new FormData(), picfiles = vm.$refs.file.files, i = 0,
-                        url = "/com/configdata/import?replace="+layero.find('input[type=checkbox]')[0].checked;
+                        url = "/api/v1/configdata/import?replace="+layero.find('input[type=checkbox]')[0].checked;
                     if (picfiles.length > 0) {
                         for (; i < picfiles.length; i++) {
                             data.append("file", picfiles[i]);
@@ -652,7 +651,45 @@ export default {
             }
             layui.layer.open(opts)
         },
-
+        // 导入新模块
+        importModules() {
+            let vm = this, loading;
+            var data = new FormData(), picfiles = vm.$refs.file.files, i = 0,
+                url = "/api/v1/configdata/import/module";
+            
+            loading = layui.layer.load(1, {
+                shade: false,
+                time: 2*1000
+            });
+            if (picfiles.length > 0) {
+                for (; i < picfiles.length; i++) {
+                    data.append("file", picfiles[i]);
+                }
+                $.ajax({
+                    url: url,
+                    type: "post",
+                    data: data,
+                    cache: false,
+                    contentType: false,    //不可缺
+                    processData: false    //不可缺
+                }).then(function (x) {
+                    if (x.status) {
+                        //上传成功
+                        vm.successMsg(x.msg);
+                    } else if (x.code === 302) {
+                        //无权限
+                        vm.errorMsg(vm.$t('mMore.Backstage.import_drive.tips[0]'))
+                    } else {
+                        //其他
+                        vm.errorMsg(vm.$t('mMore.Backstage.import_drive.tips[1]') + x.msg);
+                    }
+                    layui.layer.close(loading);
+                }, function (err) {
+                    vm.errorMsg(vm.$t('mMore.Backstage.import_drive.tips[1]') + err.msg);
+                    layui.layer.close(loading);
+                });
+            }
+        },
         // 左边菜单
         renderLeftMenu() {
             this.$refs.leftMenuTab.getTableData();
@@ -687,7 +724,7 @@ export default {
             let vm = this;
             $.ajax({
                 type: "get",
-                url: "/com/setting/hostgroup",
+                url: "/api/v1/setting/hostgroup",
                 cache: false
             }).then(function (x) {
                 if (x.status) {
@@ -747,7 +784,7 @@ export default {
             var vm = this, i, j, k;
             $.ajax({
                 type: "get",
-                url: "/com/setting/pue/item?hgid=" + vm.index.groupId,
+                url: "/api/v1/setting/pue/item?hgid=" + vm.index.groupId,
                 cache: false
             }).then(function (x) {
                 for (i = 0; i < x.data.items.length; i++) {
@@ -830,7 +867,7 @@ export default {
             for (i = 0; i < vm.delpue.length; i++) {
                 $.ajax({
                     type: "get",
-                    url: "/com/setting/pue/item/delete?id=" + vm.delpue[i],
+                    url: "/api/v1/setting/pue/item/delete?id=" + vm.delpue[i],
                     cache: false
                 }).then(function (x) {
                     if(!x.status){
@@ -855,7 +892,7 @@ export default {
                 };
                 $.ajax({
                     type: "post",
-                    url: "/com/setting/pue/item/update",
+                    url: "/api/v1/setting/pue/item/update",
                     cache: false,
                     contentType: "application/json;charset=utf-8",
                     data: JSON.stringify(code)
@@ -883,7 +920,7 @@ export default {
                 };
                 $.ajax({
                     type: "post",
-                    url: "/com/setting/pue/item/create",
+                    url: "/api/v1/setting/pue/item/create",
                     cache: false,
                     contentType: "application/json;charset=utf-8",
                     data: JSON.stringify(code)
