@@ -70,11 +70,22 @@ export default {
         }
     },
     mounted() {
+        let vm = this;
         setTimeout(()=>{
             if (this.getCookie("ItmngwebPlatformChanged") == "1") {
                 $(this.$refs.li[4]).addClass('notchange');
             }
-        }, 2*1000)
+        }, 2*1000);
+        this.$http.get('/api/v1/setting/hostgroup')
+        .then((res)=>{
+            if(res.body.status){
+                vm.hostgroup = res.body.data;
+            }else{
+                if(res.body.code==302){
+                    window.location.href = res.body.redirect
+                }
+            }
+        });
     },
 
     methods:{

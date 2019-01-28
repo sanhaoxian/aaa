@@ -2168,13 +2168,8 @@ export default {
                            
                             //修改
                             if(vm.sort=='devices'){
-                                let key = data.elem.name;
-                                // obj.update({
-                                //     key: [{Id: data.value}]
-                                // });
-                             
-                                obj.data.hostgroups = [];
-                                obj.data.hostgroups.push(data.value);
+                                obj.data.Hostgroups = [];
+                                obj.data.Hostgroups.push({'Id': data.value});
                             }else{
                                 obj.data[data.elem.name] = data.value;
                             }
@@ -2193,7 +2188,6 @@ export default {
                                 })
                             }
                             // 加入到更新数组
-                            console.log(obj.data.Hostgroups);
                             vm.updateGroup.push(obj.data);
                             if($('.modifyFlag').find('span').length==0){
                                 $('<span class="layui-badge-dot"></span>').appendTo('.modifyFlag')
